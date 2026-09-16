@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "outDir": "./dist",
+    "rootDir": "./api",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "typeRoots": ["./node_modules/@types", "./api/types"],
+    "plugins": [
+      { "transform": "typescript-transform-paths",  "afterDeclarations": true }
+    ]
+  },
+  "include": ["api/**/*.ts", "api/types/**/*.d.ts", "eslint.config.js"],
+  "exclude": ["node_modules"]
+}
