@@ -1,12 +1,12 @@
 import Joi from 'joi';
-import type { UserSchema } from '../../../models/user-model.js';
+import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 
 export interface SignUpBodyInterface {
-  name: UserSchema['name'];
-  email: UserSchema['contacts']['email'];
+  name: StaffUserSchema['name'];
+  email: StaffUserSchema['contacts']['email'];
   password: string;
-  phone: UserSchema['contacts']['phone'];
-  birthdate: UserSchema['birthdate'];
+  phone: StaffUserSchema['contacts']['phone'];
+  birthdate: StaffUserSchema['birthdate'];
 }
 
 export const signUpBodySchema: Joi.ObjectSchema<SignUpBodyInterface> = Joi.object<SignUpBodyInterface>({

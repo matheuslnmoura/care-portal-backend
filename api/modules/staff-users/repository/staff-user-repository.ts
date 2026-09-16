@@ -1,19 +1,19 @@
 import BaseClass from '../../../base/base-class/base-class.js';
 import { getPostgresPool } from '../../../config/database/postgres-client.js';
-import type { UserSchema, UserDatabaseSchema } from '../../../models/user-model.js';
+import type { StaffUserSchema, StaffUserDatabaseSchema } from '../../../models/staff-user-model.js';
 import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../exceptions/exceptions.js';
 
 export interface FindByIdAndUpdateParams {
-  userId: Pick<UserSchema, 'userId'>['userId'];
-  updateData: Partial<UserSchema>;
+  userId: Pick<StaffUserSchema, 'userId'>['userId'];
+  updateData: Partial<StaffUserSchema>;
 }
 
-export interface CreatePayload extends Pick<UserSchema, 'userId' | 'name' | 'contacts' | 'passwordHash' | 'birthdate'> {}
+export interface CreatePayload extends Pick<StaffUserSchema, 'userId' | 'name' | 'contacts' | 'passwordHash' | 'birthdate'> {}
 
-const USER_COLUMNS = 'id, public_id, name, email, phone, password_hash, birthdate, status, profile_picture_url, created_at, updated_at, deleted_at';
+const STAFF_USER_COLUMNS = 'id, public_id, name, email, phone, password_hash, birthdate, status, profile_picture_url, created_at, updated_at, deleted_at';
 
-class UserRepository extends BaseClass {
-  mapRowToUser(row: UserDatabaseSchema): UserSchema {
+class StaffUserRepository extends BaseClass {
+  mapRowToUser(row: StaffUserDatabaseSchema): StaffUserSchema {
     return {
       id: row.id,
       userId: row.public_id,
@@ -32,10 +32,10 @@ class UserRepository extends BaseClass {
     };
   }
 
-  async findByEmail({ email }: { email: string }): Promise<UserSchema | null> {
-    const result = await getPostgresPool().query<UserDatabaseSchema>(
-      `SELECT ${USER_COLUMNS}
-         FROM users
+  async findByEmail({ email }: { email: string }): Promise<StaffUserSchema | null> {
+    const result = await getPostgresPool().query<StaffUserDatabaseSchema>(
+      `SELECT ${STAFF_USER_COLUMNS}
+         FROM staff_users
         WHERE email = $1`,
       [ email ]
     );
@@ -46,10 +46,10 @@ class UserRepository extends BaseClass {
     return this.mapRowToUser(row);
   }
 
-  async findById({ userId }: Pick<UserSchema, 'userId'>): Promise<UserSchema | null> {
-    const result = await getPostgresPool().query<UserDatabaseSchema>(
-      `SELECT ${USER_COLUMNS}
-         FROM users
+  async findById({ userId }: Pick<StaffUserSchema, 'userId'>): Promise<StaffUserSchema | null> {
+    const result = await getPostgresPool().query<StaffUserDatabaseSchema>(
+      `SELECT ${STAFF_USER_COLUMNS}
+         FROM staff_users
         WHERE public_id = $1`,
       [ userId ]
     );
@@ -60,12 +60,12 @@ class UserRepository extends BaseClass {
     return this.mapRowToUser(row);
   }
 
-  async create({ user }: { user: CreatePayload }): Promise<UserSchema> {
+  async create({ user }: { user: CreatePayload }): Promise<StaffUserSchema> {
     try {
-      const result = await getPostgresPool().query<UserDatabaseSchema>(
-        `INSERT INTO users (public_id, name, email, phone, password_hash, birthdate)
+      const result = await getPostgresPool().query<StaffUserDatabaseSchema>(
+        `INSERT INTO staff_users (public_id, name, email, phone, password_hash, birthdate)
          VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING ${USER_COLUMNS}`,
+         RETURNING ${STAFF_USER_COLUMNS}`,
         [
           user.userId,
           user.name,
@@ -78,11 +78,11 @@ class UserRepository extends BaseClass {
 
       return this.mapRowToUser(result.rows[0]);
     } catch (error) {
-      if (isUniqueConstraintViolation(error) && error.constraint === 'users_email_key') {
+      if (isUniqueConstraintViolation(error) && error.constraint === 'staff_users_email_key') {
         throw new DuplicateEmailError();
       }
 
-      if (isUniqueConstraintViolation(error) && error.constraint === 'users_phone_key') {
+      if (isUniqueConstraintViolation(error) && error.constraint === 'staff_users_phone_key') {
         throw new DuplicatePhoneError();
       }
 
@@ -90,7 +90,7 @@ class UserRepository extends BaseClass {
     }
   }
 
-  async findByIdAndUpdate({ userId, updateData }: FindByIdAndUpdateParams): Promise<UserSchema> {
+  async findByIdAndUpdate({ userId, updateData }: FindByIdAndUpdateParams): Promise<StaffUserSchema> {
     const updatableColumns: Array<{ column: string; value: unknown }> = [
       { column: 'name', value: updateData.name },
       { column: 'password_hash', value: updateData.passwordHash },
@@ -111,11 +111,11 @@ class UserRepository extends BaseClass {
 
     values.push(userId);
 
-    const result = await getPostgresPool().query<UserDatabaseSchema>(
-      `UPDATE users
+    const result = await getPostgresPool().query<StaffUserDatabaseSchema>(
+      `UPDATE staff_users
           SET ${setClauses.join(', ')}
         WHERE public_id = $${values.length}
-        RETURNING ${USER_COLUMNS}`,
+        RETURNING ${STAFF_USER_COLUMNS}`,
       values
     );
 
@@ -127,7 +127,7 @@ class UserRepository extends BaseClass {
   }
 
 }
-export default UserRepository;
+export default StaffUserRepository;
 
 interface PostgresUniqueViolation {
   code: '23505';

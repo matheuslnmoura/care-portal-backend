@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Pool, PoolClient } from 'pg';
-import UserRefreshTokenRepository from '../user-refresh-token-repository.js';
+import StaffUserRefreshTokenRepository from '../staff-user-refresh-token-repository.js';
 import { setPostgresPool } from '../../../../config/database/postgres-client.js';
 import {
   RefreshTokenExpiredError,
@@ -44,14 +44,14 @@ const createStoredToken = (overrides: Record<string, unknown> = {}): Record<stri
   ...overrides
 });
 
-describe('UserRefreshTokenRepository', () => {
+describe('StaffUserRefreshTokenRepository', () => {
   let fakePool: FakePool;
-  let repository: UserRefreshTokenRepository;
+  let repository: StaffUserRefreshTokenRepository;
 
   beforeEach(() => {
     fakePool = createFakePool();
     setPostgresPool(fakePool as unknown as Pool);
-    repository = new UserRefreshTokenRepository();
+    repository = new StaffUserRefreshTokenRepository();
   });
 
   describe('create', () => {
@@ -67,7 +67,7 @@ describe('UserRefreshTokenRepository', () => {
       });
 
       expect(fakePool.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO user_refresh_tokens'),
+        expect.stringContaining('INSERT INTO staff_user_refresh_tokens'),
         [ 'user-1', 'hash-1', new Date('2099-01-01'), 'device-1', 'agent-1' ]
       );
       expect(token.id).toBe('token-row-id');
@@ -165,7 +165,7 @@ describe('UserRefreshTokenRepository', () => {
       await repository.deleteByHash({ tokenHash: 'hash-1', userId: 'user-1' });
 
       expect(fakePool.query).toHaveBeenCalledWith(
-        expect.stringContaining('DELETE FROM user_refresh_tokens'),
+        expect.stringContaining('DELETE FROM staff_user_refresh_tokens'),
         [ 'hash-1', 'user-1' ]
       );
     });

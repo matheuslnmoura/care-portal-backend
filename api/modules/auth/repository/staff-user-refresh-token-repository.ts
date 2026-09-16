@@ -60,7 +60,7 @@ export interface RefreshTokenSchema {
 
 const REFRESH_TOKEN_COLUMNS = 'id, user_id, token_hash, issued_at, expires_at, last_used_at, device_id, user_agent, revoked_at, created_at, updated_at';
 
-class UserRefreshTokenRepository extends BaseClass {
+class StaffUserRefreshTokenRepository extends BaseClass {
   async create({
     userId,
     tokenHash,
@@ -72,7 +72,7 @@ class UserRefreshTokenRepository extends BaseClass {
     const runner = client ?? getPostgresPool();
 
     const result = await runner.query<RefreshTokenSchema>(
-      `INSERT INTO user_refresh_tokens (
+      `INSERT INTO staff_user_refresh_tokens (
         user_id,
         token_hash,
         expires_at,
@@ -94,7 +94,7 @@ class UserRefreshTokenRepository extends BaseClass {
 
     const result = await client.query<RefreshTokenSchema>(
       `SELECT ${REFRESH_TOKEN_COLUMNS}
-        FROM user_refresh_tokens
+        FROM staff_user_refresh_tokens
         WHERE token_hash = $1
         FOR UPDATE`,
       [ tokenHash ]
@@ -109,7 +109,7 @@ class UserRefreshTokenRepository extends BaseClass {
     column
   }: RevokeTokenParams & { column: 'revoked_at' | 'last_used_at' }): Promise<void> {
     await client.query(
-      `UPDATE user_refresh_tokens
+      `UPDATE staff_user_refresh_tokens
           SET ${column} = NOW(),
               updated_at = NOW()
         WHERE id = $1`,
@@ -128,7 +128,7 @@ class UserRefreshTokenRepository extends BaseClass {
   async revokeAllForUser({ userId, client }: RevokeAllParams): Promise<void> {
     const runner = client ?? getPostgresPool();
     await runner.query(
-      `UPDATE user_refresh_tokens
+      `UPDATE staff_user_refresh_tokens
           SET revoked_at = NOW(),
               updated_at = NOW()
         WHERE user_id = $1
@@ -141,7 +141,7 @@ class UserRefreshTokenRepository extends BaseClass {
   // supplying/guessing another user's token hash - deleting 0 rows is a silent no-op either way.
   async deleteByHash({ tokenHash, userId, client }: DeleteTokenParams): Promise<void> {
     const runner = client ?? getPostgresPool();
-    await runner.query('DELETE FROM user_refresh_tokens WHERE token_hash = $1 AND user_id = $2', [ tokenHash, userId ]);
+    await runner.query('DELETE FROM staff_user_refresh_tokens WHERE token_hash = $1 AND user_id = $2', [ tokenHash, userId ]);
   }
 
   async rotateToken({
@@ -163,7 +163,7 @@ class UserRefreshTokenRepository extends BaseClass {
       if (storedToken === null) {
         this.logger.error({
           actor: userId,
-          className: 'UserRefreshTokenRepository',
+          className: 'StaffUserRefreshTokenRepository',
           method: 'rotateToken',
           logMessage: 'Invalid refresh token'
         });
@@ -173,7 +173,7 @@ class UserRefreshTokenRepository extends BaseClass {
       if (storedToken.revoked_at !== null) {
         this.logger.info({
           actor: userId,
-          className: 'UserRefreshTokenRepository',
+          className: 'StaffUserRefreshTokenRepository',
           method: 'rotateToken',
           logMessage: 'Refresh token revoked'
         });
@@ -183,7 +183,7 @@ class UserRefreshTokenRepository extends BaseClass {
       if (storedToken.user_id !== userId) {
         this.logger.error({
           actor: userId,
-          className: 'UserRefreshTokenRepository',
+          className: 'StaffUserRefreshTokenRepository',
           method: 'rotateToken',
           logMessage: 'Refresh token does not belong to user'
         });
@@ -200,7 +200,7 @@ class UserRefreshTokenRepository extends BaseClass {
         committed = true;
         this.logger.info({
           actor: userId,
-          className: 'UserRefreshTokenRepository',
+          className: 'StaffUserRefreshTokenRepository',
           method: 'rotateToken',
           logMessage: 'Refresh token expired'
         });
@@ -231,5 +231,5 @@ class UserRefreshTokenRepository extends BaseClass {
   }
 }
 
-export default UserRefreshTokenRepository;
+export default StaffUserRefreshTokenRepository;
 

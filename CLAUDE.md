@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is `care-portal-backend` (package name), a Node.js/TypeScript/Express API for a multi-tenant
 healthcare booking platform ("CarePortal"): clinics are tenants, staff/providers authenticate via
 this app, and patient clinical identity is intended to live in an external FHIR-compliant EHR rather
-than in this app's own database. `users`/`user_refresh_tokens` already carry a `tenant_id` column,
+than in this app's own database. `staff_users`/`staff_user_refresh_tokens` already carry a `tenant_id` column,
 but no Tenant/RBAC/patient-identity application code exists yet, so don't assume tenant scoping is
 enforced anywhere just because the column exists.
 
@@ -37,7 +37,9 @@ There is no local `.env` committed (`.gitignore` excludes all `.env*` except `.e
 
 **Config (`api/config/environment-config/config.ts`):** a single object read entirely from `process.env` at import time, with local-dev-friendly fallbacks (Postgres defaults to `localhost`; Mongo/Redis default to unconfigured/skipped). There is deliberately no per-environment config file anymore — environment differences come only from which `.env.*` file `bootstrap-env.ts` loaded, not from branching code. When adding a new config value, add it here as an env-var read with a fallback, not as a hardcoded literal.
 
-**Module layout (`api/modules/<name>/`):** each domain module (currently `auth`, `users`) follows `route.ts` → `controller.ts` → `service/` → `repository/`, each with a co-located `__tests__/`. A service should not reach into another module's repository directly — go through that module's service.
+**Module layout (`api/modules/<name>/`):** each domain module (currently `auth`, `staff-users`) follows `route.ts` → `controller.ts` → `service/` → `repository/`, each with a co-located `__tests__/`. A service should not reach into another module's repository directly — go through that module's service.
+
+**Principal identity split:** `staff-users` holds staff/provider accounts specifically — not a generic "user." Patients are a structurally different principal (many-to-many to tenants, no admin provisioning, no adult-age requirement, and per this project's data-ownership design their identity belongs in FHIR, not this app). `api/modules/auth/credential.ts` defines `AuthCredential`/`CredentialProvider<T>` — the minimal shape (`id`, `userId`, `passwordHash`) `AuthService` actually needs for login/refresh/logout, decoupled from any one concrete principal type. `StaffUserService implements CredentialProvider<StaffUserSchema>`; when a patient-facing principal is eventually added, it should implement the same interface rather than `AuthService` growing a second hardcoded dependency. Account creation (`createUser`) is deliberately *not* part of this interface — signup fields differ per principal type.
 
 **Error handling, two distinct tiers (`api/exceptions/exceptions.ts`):**
 - `CustomRequestError` and its subclasses (`BadRequestError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `TooManyRequestsError`, `UnexpectedError`) are HTTP-facing — `BaseController.handleError` maps these to the right status code/body, and anything else falls back to a generic 500.

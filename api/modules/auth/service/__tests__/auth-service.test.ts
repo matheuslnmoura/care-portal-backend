@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockUserService, mockRefreshTokenRepository, mockPasswordManager, mockTokenManager } = vi.hoisted(() => ({
-  mockUserService: {
+const { mockStaffUserService, mockRefreshTokenRepository, mockPasswordManager, mockTokenManager } = vi.hoisted(() => ({
+  mockStaffUserService: {
     createUser: vi.fn(),
-    findUserByEmail: vi.fn(),
-    findUserById: vi.fn()
+    findByEmail: vi.fn(),
+    findById: vi.fn()
   },
   mockRefreshTokenRepository: {
     create: vi.fn(),
@@ -25,14 +25,14 @@ const { mockUserService, mockRefreshTokenRepository, mockPasswordManager, mockTo
   }
 }));
 
-vi.mock('../../../users/service/user-service', () => ({
-  default: vi.fn(function UserServiceMock() {
-    return mockUserService;
+vi.mock('../../../staff-users/service/staff-user-service', () => ({
+  default: vi.fn(function StaffUserServiceMock() {
+    return mockStaffUserService;
   })
 }));
 
-vi.mock('../../repository/user-refresh-token-repository', () => ({
-  default: vi.fn(function UserRefreshTokenRepositoryMock() {
+vi.mock('../../repository/staff-user-refresh-token-repository', () => ({
+  default: vi.fn(function StaffUserRefreshTokenRepositoryMock() {
     return mockRefreshTokenRepository;
   })
 }));
@@ -60,9 +60,9 @@ import {
   RefreshTokenOwnershipError,
   RefreshTokenRevokedError
 } from '../../../../exceptions/exceptions.js';
-import type { UserSchema } from '../../../../models/user-model.js';
+import type { StaffUserSchema } from '../../../../models/staff-user-model.js';
 
-const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => ({
+const createUserFixture = (overrides: Partial<StaffUserSchema> = {}): StaffUserSchema => ({
   id: 'internal-uuid-1',
   userId: 'user-public-id-1',
   name: 'Alice',
@@ -102,7 +102,7 @@ describe('AuthService', () => {
   describe('createUser', () => {
     it('hashes the password, generates a userId, and delegates to userService.createUser', async () => {
       const createdUser = createUserFixture();
-      mockUserService.createUser.mockResolvedValueOnce(createdUser);
+      mockStaffUserService.createUser.mockResolvedValueOnce(createdUser);
 
       const result = await authService.createUser({
         name: 'Alice',
@@ -113,7 +113,7 @@ describe('AuthService', () => {
       });
 
       expect(mockPasswordManager.createPasswordHash).toHaveBeenCalledWith({ password: 'plain-text-password' });
-      expect(mockUserService.createUser).toHaveBeenCalledWith({
+      expect(mockStaffUserService.createUser).toHaveBeenCalledWith({
         user: {
           userId: 'fixed-nanoid',
           name: 'Alice',
@@ -128,7 +128,7 @@ describe('AuthService', () => {
 
   describe('authenticateUser', () => {
     it('throws UnauthorizedError when no user matches the email', async () => {
-      mockUserService.findUserByEmail.mockResolvedValueOnce(null);
+      mockStaffUserService.findByEmail.mockResolvedValueOnce(null);
 
       await expect(authService.authenticateUser({ email: 'nobody@example.com', password: 'x' }))
         .rejects.toMatchObject({ code: 'INVALID_CREDENTIALS' });
@@ -138,7 +138,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedError when the password does not match', async () => {
-      mockUserService.findUserByEmail.mockResolvedValueOnce(createUserFixture());
+      mockStaffUserService.findByEmail.mockResolvedValueOnce(createUserFixture());
       mockPasswordManager.verifyPasswordHash.mockResolvedValueOnce(false);
 
       await expect(authService.authenticateUser({ email: 'alice@example.com', password: 'wrong' }))
@@ -149,7 +149,7 @@ describe('AuthService', () => {
 
     it('generates tokens, stores the refresh token hash, and returns the tokens on success', async () => {
       const user = createUserFixture();
-      mockUserService.findUserByEmail.mockResolvedValueOnce(user);
+      mockStaffUserService.findByEmail.mockResolvedValueOnce(user);
 
       const result = await authService.authenticateUser({
         email: 'alice@example.com',
@@ -174,7 +174,7 @@ describe('AuthService', () => {
     });
 
     it('defaults userAgent to "unknown" when not provided', async () => {
-      mockUserService.findUserByEmail.mockResolvedValueOnce(createUserFixture());
+      mockStaffUserService.findByEmail.mockResolvedValueOnce(createUserFixture());
 
       await authService.authenticateUser({ email: 'alice@example.com', password: 'correct' });
 
@@ -189,12 +189,12 @@ describe('AuthService', () => {
       await expect(authService.refreshToken({ refreshToken: 'bad-token' }))
         .rejects.toMatchObject({ code: 'INVALID_REFRESH_TOKEN' });
 
-      expect(mockUserService.findUserById).not.toHaveBeenCalled();
+      expect(mockStaffUserService.findById).not.toHaveBeenCalled();
     });
 
     it('throws UnauthorizedError when no user matches the token payload', async () => {
       mockTokenManager.verifyRefreshToken.mockReturnValueOnce({ userId: 'user-public-id-1' });
-      mockUserService.findUserById.mockResolvedValueOnce(null);
+      mockStaffUserService.findById.mockResolvedValueOnce(null);
 
       await expect(authService.refreshToken({ refreshToken: 'some-token' })).rejects.toMatchObject({
         code: 'INVALID_REFRESH_TOKEN',
@@ -205,7 +205,7 @@ describe('AuthService', () => {
     it('rotates the token and returns new tokens on success', async () => {
       const user = createUserFixture();
       mockTokenManager.verifyRefreshToken.mockReturnValueOnce({ userId: user.userId });
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
       mockTokenManager.generateAccessToken.mockReturnValueOnce('new-access-token');
       mockTokenManager.generateRefreshToken.mockReturnValueOnce('new-refresh-token');
 
@@ -234,7 +234,7 @@ describe('AuthService', () => {
     ] as const)('maps %s from rotateToken to UnauthorizedError with code %s', async (ErrorClass, expectedCode) => {
       const user = createUserFixture();
       mockTokenManager.verifyRefreshToken.mockReturnValueOnce({ userId: user.userId });
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
       mockRefreshTokenRepository.rotateToken.mockRejectedValueOnce(new ErrorClass());
 
       await expect(authService.refreshToken({ refreshToken: 'current-token' })).rejects.toMatchObject({
@@ -245,7 +245,7 @@ describe('AuthService', () => {
     it('rethrows unrecognized errors from rotateToken unchanged', async () => {
       const user = createUserFixture();
       mockTokenManager.verifyRefreshToken.mockReturnValueOnce({ userId: user.userId });
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
       const unexpectedError = new Error('connection lost');
       mockRefreshTokenRepository.rotateToken.mockRejectedValueOnce(unexpectedError);
 
@@ -257,13 +257,13 @@ describe('AuthService', () => {
     it('logs and returns early when no refresh token is provided', async () => {
       await authService.logout({ userId: 'user-public-id-1', refreshToken: undefined });
 
-      expect(mockUserService.findUserById).not.toHaveBeenCalled();
+      expect(mockStaffUserService.findById).not.toHaveBeenCalled();
       expect(mockRefreshTokenRepository.deleteByHash).not.toHaveBeenCalled();
       expect(getLoggedOutput()).toContain('No refresh token found');
     });
 
     it('logs and returns early when no user matches the userId', async () => {
-      mockUserService.findUserById.mockResolvedValueOnce(null);
+      mockStaffUserService.findById.mockResolvedValueOnce(null);
 
       await authService.logout({ userId: 'missing-user', refreshToken: 'some-token' });
 
@@ -273,7 +273,7 @@ describe('AuthService', () => {
 
     it('deletes the refresh token scoped to the internal user id', async () => {
       const user = createUserFixture();
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
 
       await authService.logout({ userId: user.userId, refreshToken: 'some-token' });
 
@@ -286,7 +286,7 @@ describe('AuthService', () => {
 
   describe('logoutFromAllDevices', () => {
     it('logs and returns early when no user matches the userId', async () => {
-      mockUserService.findUserById.mockResolvedValueOnce(null);
+      mockStaffUserService.findById.mockResolvedValueOnce(null);
 
       await authService.logoutFromAllDevices({ userId: 'missing-user' });
 
@@ -298,7 +298,7 @@ describe('AuthService', () => {
 
     it('revokes all refresh tokens for the internal user id', async () => {
       const user = createUserFixture();
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
 
       await authService.logoutFromAllDevices({ userId: user.userId });
 

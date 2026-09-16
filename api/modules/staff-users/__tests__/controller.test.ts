@@ -1,22 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const { mockUserService } = vi.hoisted(() => ({
-  mockUserService: {
-    findUserById: vi.fn()
+const { mockStaffUserService } = vi.hoisted(() => ({
+  mockStaffUserService: {
+    findById: vi.fn()
   }
 }));
 
-vi.mock('../service/user-service', () => ({
-  default: vi.fn(function UserServiceMock() {
-    return mockUserService;
+vi.mock('../service/staff-user-service', () => ({
+  default: vi.fn(function StaffUserServiceMock() {
+    return mockStaffUserService;
   })
 }));
 
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import UsersController from '../controller.js';
+import StaffUsersController from '../controller.js';
 import { UnexpectedError } from '../../../exceptions/exceptions.js';
-import type { UserSchema } from '../../../models/user-model.js';
+import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 import { getRequestContext, requestContextStorage } from '../../../utils/request-context/request-context.js';
 
 interface MockResponse {
@@ -35,7 +35,7 @@ const createMockResponse = (): MockResponse => {
   return res;
 };
 
-const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => ({
+const createUserFixture = (overrides: Partial<StaffUserSchema> = {}): StaffUserSchema => ({
   id: 'internal-uuid-1',
   userId: 'user-public-id-1',
   name: 'Alice',
@@ -50,9 +50,9 @@ const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => (
   ...overrides
 });
 
-describe('UsersController', () => {
+describe('StaffUsersController', () => {
   describe('getUserInfo', () => {
-    const controller = new UsersController();
+    const controller = new StaffUsersController();
 
     it('returns 401 when the request has no authenticated user', async () => {
       const req = createMockRequest();
@@ -62,17 +62,17 @@ describe('UsersController', () => {
 
       expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
       expect(res.send).toHaveBeenCalledWith({ message: 'User Id not found', code: 'MISSING_USER_ID' });
-      expect(mockUserService.findUserById).not.toHaveBeenCalled();
+      expect(mockStaffUserService.findById).not.toHaveBeenCalled();
     });
 
     it('returns 404 when the service finds no matching user', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
-      mockUserService.findUserById.mockResolvedValueOnce(null);
+      mockStaffUserService.findById.mockResolvedValueOnce(null);
 
       await controller.getUserInfo(req, res as unknown as Response);
 
-      expect(mockUserService.findUserById).toHaveBeenCalledWith({ userId: 'user-public-id-1' });
+      expect(mockStaffUserService.findById).toHaveBeenCalledWith({ userId: 'user-public-id-1' });
       expect(res.status).toHaveBeenCalledWith(StatusCodes.NOT_FOUND);
       expect(res.send).toHaveBeenCalledWith({ message: 'User information not found', code: 'USER_INFO_NOT_FOUND' });
     });
@@ -81,7 +81,7 @@ describe('UsersController', () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
       const user = createUserFixture();
-      mockUserService.findUserById.mockResolvedValueOnce(user);
+      mockStaffUserService.findById.mockResolvedValueOnce(user);
 
       await controller.getUserInfo(req, res as unknown as Response);
 
@@ -92,7 +92,7 @@ describe('UsersController', () => {
     it('does not leak fields beyond name and contacts to the response', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
-      mockUserService.findUserById.mockResolvedValueOnce(createUserFixture());
+      mockStaffUserService.findById.mockResolvedValueOnce(createUserFixture());
 
       await controller.getUserInfo(req, res as unknown as Response);
 
@@ -103,7 +103,7 @@ describe('UsersController', () => {
     it('delegates unexpected service errors to the shared error handler', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
-      mockUserService.findUserById.mockRejectedValueOnce(
+      mockStaffUserService.findById.mockRejectedValueOnce(
         new UnexpectedError({ message: 'An error occurred while getting user information.', code: 'GET_USER_ERROR' })
       );
 
@@ -119,12 +119,12 @@ describe('UsersController', () => {
     it('sets the request context for logging purposes', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
-      mockUserService.findUserById.mockResolvedValueOnce(createUserFixture());
+      mockStaffUserService.findById.mockResolvedValueOnce(createUserFixture());
 
       await requestContextStorage.run({ requestId: 'req-1' }, async () => {
         await controller.getUserInfo(req, res as unknown as Response);
 
-        expect(getRequestContext()).toEqual({ className: 'UsersController', methodName: 'getUserInfo' });
+        expect(getRequestContext()).toEqual({ className: 'StaffUsersController', methodName: 'getUserInfo' });
       });
     });
   });

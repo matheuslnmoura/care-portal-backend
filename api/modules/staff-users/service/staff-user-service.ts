@@ -1,18 +1,19 @@
 import { ConflictError, DuplicateEmailError, DuplicatePhoneError, UnexpectedError } from '../../../exceptions/exceptions.js';
 import BaseClass from '../../../base/base-class/base-class.js';
-import type { UserSchema } from '../../../models/user-model.js';
-import UserRepository from '../repository/user-repository.js';
-import type { CreatePayload } from '../repository/user-repository.js';
+import type { StaffUserSchema } from '../../../models/staff-user-model.js';
+import StaffUserRepository from '../repository/staff-user-repository.js';
+import type { CreatePayload } from '../repository/staff-user-repository.js';
+import type { CredentialProvider } from '../../auth/credential.js';
 
-class UserService extends BaseClass {
-  private readonly repository: UserRepository;
+class StaffUserService extends BaseClass implements CredentialProvider<StaffUserSchema> {
+  private readonly repository: StaffUserRepository;
 
   constructor() {
     super();
-    this.repository = new UserRepository();
+    this.repository = new StaffUserRepository();
   }
 
-  async createUser({ user }: { user: CreatePayload }): Promise<UserSchema> {
+  async createUser({ user }: { user: CreatePayload }): Promise<StaffUserSchema> {
     try {
       return await this.repository.create({ user });
     } catch (error) {
@@ -32,7 +33,7 @@ class UserService extends BaseClass {
 
       this.logger.error({
         actor: user.contacts.email,
-        className: 'UserService',
+        className: 'StaffUserService',
         method: 'createUser',
         logMessage: 'Unexpected Error when trying to create user',
         metadata: { error }
@@ -45,14 +46,14 @@ class UserService extends BaseClass {
     }
   }
 
-  async findUserByEmail({ email }: Pick<UserSchema['contacts'], 'email'>): Promise<UserSchema | null> {
+  async findByEmail({ email }: Pick<StaffUserSchema['contacts'], 'email'>): Promise<StaffUserSchema | null> {
     try {
       return await this.repository.findByEmail({ email });
     } catch (error) {
       this.logger.error({
         actor: email,
-        className: 'UserService',
-        method: 'findUserByEmail',
+        className: 'StaffUserService',
+        method: 'findByEmail',
         logMessage: 'Unexpected Error when trying to get user by email',
         metadata: { error }
       });
@@ -63,14 +64,14 @@ class UserService extends BaseClass {
     }
   }
 
-  async findUserById({ userId }: Pick<UserSchema, 'userId'>): Promise<UserSchema | null> {
+  async findById({ userId }: Pick<StaffUserSchema, 'userId'>): Promise<StaffUserSchema | null> {
     try {
       return await this.repository.findById({ userId });
     } catch (error) {
       this.logger.error({
         actor: userId,
-        className: 'UserService',
-        method: 'findUserById',
+        className: 'StaffUserService',
+        method: 'findById',
         logMessage: 'Unexpected Error when trying to get user by id',
         metadata: { error }
       });
@@ -82,4 +83,4 @@ class UserService extends BaseClass {
   }
 }
 
-export default UserService;
+export default StaffUserService;

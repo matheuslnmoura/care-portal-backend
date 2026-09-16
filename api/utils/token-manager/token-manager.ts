@@ -4,14 +4,14 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import BaseClass from '../../base/base-class/base-class.js';
 import { UnexpectedError } from '../../exceptions/exceptions.js';
-import { type UserSchema } from '../../models/user-model.js';
+import { type StaffUserSchema } from '../../models/staff-user-model.js';
 
 export interface GenerateTokenInterface {
   payload: VerifyTokenResponseInterface
 }
 
 export interface VerifyTokenResponseInterface {
-  userId: Pick<UserSchema, 'userId'>['userId']
+  userId: Pick<StaffUserSchema, 'userId'>['userId']
 }
 
 export interface TokensInterface {

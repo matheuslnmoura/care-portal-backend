@@ -1,11 +1,12 @@
 import BaseClass from '../../../base/base-class/base-class.js';
-import type { UserSchema } from '../../../models/user-model.js';
+import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 import PasswordManager from '../../../utils/password-manager/password-manager.js';
-import UserService from '../../users/service/user-service.js';
-import UserRefreshTokenRepository from '../repository/user-refresh-token-repository.js';
+import StaffUserService from '../../staff-users/service/staff-user-service.js';
+import StaffUserRefreshTokenRepository from '../repository/staff-user-refresh-token-repository.js';
 import { nanoid } from 'nanoid';
 import type { TokensInterface } from '../../../utils/token-manager/token-manager.js';
 import { TokenManager } from '../../../utils/token-manager/token-manager.js';
+import type { AuthCredential, CredentialProvider } from '../credential.js';
 import {
   RefreshTokenNotFoundError,
   RefreshTokenOwnershipError,
@@ -15,11 +16,11 @@ import {
 } from '../../../exceptions/exceptions.js';
 
 export interface UserPayload  {
-  name: UserSchema['name'];
-  phone: UserSchema['contacts']['phone'];
-  email: UserSchema['contacts']['email'];
+  name: StaffUserSchema['name'];
+  phone: StaffUserSchema['contacts']['phone'];
+  email: StaffUserSchema['contacts']['email'];
   password: string;
-  birthdate: UserSchema['birthdate'];
+  birthdate: StaffUserSchema['birthdate'];
 };
 
 interface AuthenticateUserParamsInterface extends Pick<UserPayload, 'email' | 'password'> {
@@ -29,28 +30,34 @@ interface AuthenticateUserParamsInterface extends Pick<UserPayload, 'email' | 'p
 interface AuthenticateUserResponseInterface {
   accessToken: string,
   refreshToken: string,
-  userId: Pick<UserSchema, 'userId'>['userId']
+  userId: Pick<StaffUserSchema, 'userId'>['userId']
 }
 
 interface LogoutParamsInterface {
   refreshToken?: Pick<TokensInterface, 'refreshToken'>['refreshToken']
-  userId: Pick<UserSchema, 'userId'>['userId']
+  userId: Pick<StaffUserSchema, 'userId'>['userId']
 }
 
 class AuthService extends BaseClass {
-  private readonly userService: UserService;
-  private readonly refreshTokenRepository: UserRefreshTokenRepository;
+  private readonly staffUserService: StaffUserService;
+  private readonly credentialProvider: CredentialProvider<AuthCredential>;
+  private readonly refreshTokenRepository: StaffUserRefreshTokenRepository;
   private readonly passwordManager: PasswordManager;
   private readonly tokenManager: TokenManager;
   constructor() {
     super();
-    this.userService = new UserService();
-    this.refreshTokenRepository = new UserRefreshTokenRepository();
+    this.staffUserService = new StaffUserService();
+    // Same instance as staffUserService, referenced through the narrower contract - everything
+    // below that only needs to look up a credential (not create one) depends on this interface,
+    // not on StaffUserService concretely, so a second principal type can plug in later without
+    // touching this login/refresh/logout logic.
+    this.credentialProvider = this.staffUserService;
+    this.refreshTokenRepository = new StaffUserRefreshTokenRepository();
     this.passwordManager = new PasswordManager();
     this.tokenManager = new TokenManager();
   }
 
-  async createUser({ name, phone, email, password, birthdate }: UserPayload): Promise<UserSchema> {
+  async createUser({ name, phone, email, password, birthdate }: UserPayload): Promise<StaffUserSchema> {
     const user = {
       userId: nanoid(),
       name,
@@ -62,11 +69,11 @@ class AuthService extends BaseClass {
       birthdate
     };
 
-    return await this.userService.createUser({ user });
+    return await this.staffUserService.createUser({ user });
   }
 
   async authenticateUser({ email, password, userAgent }: AuthenticateUserParamsInterface): Promise<AuthenticateUserResponseInterface> {
-    const user = await this.userService.findUserByEmail({ email });
+    const user = await this.credentialProvider.findByEmail({ email });
     if (user === null) throw new UnauthorizedError({ message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' });
     const isValidPassword = await this.passwordManager.verifyPasswordHash({ password, passwordHash: user.passwordHash });
     if (!isValidPassword) throw new UnauthorizedError({ message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' });
@@ -98,7 +105,7 @@ class AuthService extends BaseClass {
 
     const refreshTokenHash = this.tokenManager.generateRefreshTokenHash({ refreshToken });
 
-    const user = await this.userService.findUserById({ userId });
+    const user = await this.credentialProvider.findById({ userId });
     if (user === null) {
       throw new UnauthorizedError({ message: 'No user related to refresh token', code: 'INVALID_REFRESH_TOKEN' });
     }
@@ -150,7 +157,7 @@ class AuthService extends BaseClass {
       return;
     }
 
-    const user = await this.userService.findUserById({ userId });
+    const user = await this.credentialProvider.findById({ userId });
     if (user === null) {
       this.logger.info({
         actor: userId,
@@ -165,8 +172,8 @@ class AuthService extends BaseClass {
     await this.refreshTokenRepository.deleteByHash({ tokenHash: refreshTokenHash, userId: user.id });
   }
 
-  async logoutFromAllDevices({ userId }: Pick<UserSchema, 'userId'>): Promise<void> {
-    const user = await this.userService.findUserById({ userId });
+  async logoutFromAllDevices({ userId }: Pick<StaffUserSchema, 'userId'>): Promise<void> {
+    const user = await this.credentialProvider.findById({ userId });
     if (user === null) {
       this.logger.info({
         actor: userId,

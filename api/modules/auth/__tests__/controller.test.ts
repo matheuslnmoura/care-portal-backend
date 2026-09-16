@@ -20,7 +20,7 @@ import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import AuthController from '../controller.js';
 import { ConflictError, UnauthorizedError } from '../../../exceptions/exceptions.js';
-import type { UserSchema } from '../../../models/user-model.js';
+import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 import { getRequestContext, getUserId, requestContextStorage } from '../../../utils/request-context/request-context.js';
 
 interface MockResponse {
@@ -44,7 +44,7 @@ const createMockResponse = (): MockResponse => {
   return res;
 };
 
-const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => ({
+const createUserFixture = (overrides: Partial<StaffUserSchema> = {}): StaffUserSchema => ({
   id: 'internal-uuid-1',
   userId: 'user-public-id-1',
   name: 'Alice',

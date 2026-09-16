@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Pool } from 'pg';
-import UserRepository from '../user-repository.js';
+import StaffUserRepository from '../staff-user-repository.js';
 import { setPostgresPool } from '../../../../config/database/postgres-client.js';
-import type { UserDatabaseSchema } from '../../../../models/user-model.js';
+import type { StaffUserDatabaseSchema } from '../../../../models/staff-user-model.js';
 import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../../exceptions/exceptions.js';
 
 interface FakePool {
   query: ReturnType<typeof vi.fn>;
 }
 
-const createFakeRow = (overrides: Partial<UserDatabaseSchema> = {}): UserDatabaseSchema => ({
+const createFakeRow = (overrides: Partial<StaffUserDatabaseSchema> = {}): StaffUserDatabaseSchema => ({
   id: 'internal-id-1',
   public_id: 'user-public-id-1',
   name: 'Alice',
@@ -25,21 +25,21 @@ const createFakeRow = (overrides: Partial<UserDatabaseSchema> = {}): UserDatabas
   ...overrides
 });
 
-describe('UserRepository', () => {
+describe('StaffUserRepository', () => {
   let fakePool: FakePool;
-  let userRepository: UserRepository;
+  let staffUserRepository: StaffUserRepository;
 
   beforeEach(() => {
     fakePool = { query: vi.fn() };
     setPostgresPool(fakePool as unknown as Pool);
-    userRepository = new UserRepository();
+    staffUserRepository = new StaffUserRepository();
   });
 
   describe('mapRowToUser', () => {
     it('maps a database row to the domain user shape', () => {
       const row = createFakeRow();
 
-      const user = userRepository.mapRowToUser(row);
+      const user = staffUserRepository.mapRowToUser(row);
 
       expect(user).toEqual({
         id: 'internal-id-1',
@@ -61,7 +61,7 @@ describe('UserRepository', () => {
     it('returns null when no user matches the email', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [] });
 
-      const user = await userRepository.findByEmail({ email: 'nobody@example.com' });
+      const user = await staffUserRepository.findByEmail({ email: 'nobody@example.com' });
 
       expect(user).toBeNull();
       expect(fakePool.query).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe('UserRepository', () => {
     it('returns the mapped user when a row is found', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [ createFakeRow() ] });
 
-      const user = await userRepository.findByEmail({ email: 'alice@example.com' });
+      const user = await staffUserRepository.findByEmail({ email: 'alice@example.com' });
 
       expect(user?.userId).toBe('user-public-id-1');
     });
@@ -83,7 +83,7 @@ describe('UserRepository', () => {
     it('returns null when no user matches the public id', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [] });
 
-      const user = await userRepository.findById({ userId: 'missing-id' });
+      const user = await staffUserRepository.findById({ userId: 'missing-id' });
 
       expect(user).toBeNull();
       expect(fakePool.query).toHaveBeenCalledWith(
@@ -95,7 +95,7 @@ describe('UserRepository', () => {
     it('returns the mapped user when a row is found', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [ createFakeRow({ public_id: 'user-public-id-2' }) ] });
 
-      const user = await userRepository.findById({ userId: 'user-public-id-2' });
+      const user = await staffUserRepository.findById({ userId: 'user-public-id-2' });
 
       expect(user?.userId).toBe('user-public-id-2');
     });
@@ -113,42 +113,42 @@ describe('UserRepository', () => {
     it('inserts the user and returns the mapped row', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [ createFakeRow() ] });
 
-      const user = await userRepository.create({ user: createPayload });
+      const user = await staffUserRepository.create({ user: createPayload });
 
       expect(fakePool.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO users'),
+        expect.stringContaining('INSERT INTO staff_users'),
         [ 'user-public-id-1', 'Alice', 'alice@example.com', '+15551234567', 'hashed-password', new Date('1990-01-01') ]
       );
       expect(user.userId).toBe('user-public-id-1');
     });
 
     it('throws DuplicateEmailError when the email unique constraint is violated', async () => {
-      const pgError = Object.assign(new Error('duplicate key value'), { code: '23505', constraint: 'users_email_key' });
+      const pgError = Object.assign(new Error('duplicate key value'), { code: '23505', constraint: 'staff_users_email_key' });
       fakePool.query.mockRejectedValueOnce(pgError);
 
-      await expect(userRepository.create({ user: createPayload })).rejects.toThrow(DuplicateEmailError);
+      await expect(staffUserRepository.create({ user: createPayload })).rejects.toThrow(DuplicateEmailError);
     });
 
     it('throws DuplicatePhoneError when the phone unique constraint is violated', async () => {
-      const pgError = Object.assign(new Error('duplicate key value'), { code: '23505', constraint: 'users_phone_key' });
+      const pgError = Object.assign(new Error('duplicate key value'), { code: '23505', constraint: 'staff_users_phone_key' });
       fakePool.query.mockRejectedValueOnce(pgError);
 
-      await expect(userRepository.create({ user: createPayload })).rejects.toThrow(DuplicatePhoneError);
+      await expect(staffUserRepository.create({ user: createPayload })).rejects.toThrow(DuplicatePhoneError);
     });
 
     it('rethrows the original error when it is not a recognized unique constraint violation', async () => {
       const connectionError = new Error('connection terminated unexpectedly');
       fakePool.query.mockRejectedValueOnce(connectionError);
 
-      await expect(userRepository.create({ user: createPayload })).rejects.toThrow(connectionError);
+      await expect(staffUserRepository.create({ user: createPayload })).rejects.toThrow(connectionError);
     });
   });
 
   describe('findByIdAndUpdate', () => {
     it('throws a BadRequestError when no updatable fields are provided', async () => {
-      await expect(userRepository.findByIdAndUpdate({ userId: 'user-1', updateData: {} }))
+      await expect(staffUserRepository.findByIdAndUpdate({ userId: 'user-1', updateData: {} }))
         .rejects.toThrow(BadRequestError);
-      await expect(userRepository.findByIdAndUpdate({ userId: 'user-1', updateData: {} }))
+      await expect(staffUserRepository.findByIdAndUpdate({ userId: 'user-1', updateData: {} }))
         .rejects.toThrow('No valid fields provided for update.');
 
       expect(fakePool.query).not.toHaveBeenCalled();
@@ -158,16 +158,16 @@ describe('UserRepository', () => {
       fakePool.query.mockResolvedValueOnce({ rows: [] });
       fakePool.query.mockResolvedValueOnce({ rows: [] });
 
-      await expect(userRepository.findByIdAndUpdate({ userId: 'missing-id', updateData: { name: 'New Name' } }))
+      await expect(staffUserRepository.findByIdAndUpdate({ userId: 'missing-id', updateData: { name: 'New Name' } }))
         .rejects.toThrow(NotFoundError);
-      await expect(userRepository.findByIdAndUpdate({ userId: 'missing-id', updateData: { name: 'New Name' } }))
+      await expect(staffUserRepository.findByIdAndUpdate({ userId: 'missing-id', updateData: { name: 'New Name' } }))
         .rejects.toThrow('User with id missing-id not found');
     });
 
     it('builds a single-field update with correctly indexed placeholders', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [ createFakeRow({ name: 'New Name' }) ] });
 
-      await userRepository.findByIdAndUpdate({ userId: 'user-1', updateData: { name: 'New Name' } });
+      await staffUserRepository.findByIdAndUpdate({ userId: 'user-1', updateData: { name: 'New Name' } });
 
       expect(fakePool.query).toHaveBeenCalledWith(
         expect.stringMatching(/name = \$1.*WHERE public_id = \$2/s),
@@ -178,7 +178,7 @@ describe('UserRepository', () => {
     it('builds a multi-field update with correctly indexed placeholders in declaration order', async () => {
       fakePool.query.mockResolvedValueOnce({ rows: [ createFakeRow() ] });
 
-      await userRepository.findByIdAndUpdate({
+      await staffUserRepository.findByIdAndUpdate({
         userId: 'user-1',
         updateData: {
           name: 'New Name',

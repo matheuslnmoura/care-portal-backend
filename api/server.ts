@@ -2,7 +2,7 @@ import './bootstrap-env.js';
 import express, { type Application } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseClass from './base/base-class/base-class.js';
-import UserRoutes from './modules/users/route.js';
+import StaffUserRoutes from './modules/staff-users/route.js';
 import DatabaseManager from './config/database/database-manager.js';
 import PlatformMiddleware from './middlewares/platform-middleware/platform-middleware.js';
 import requestIdMiddleware from './middlewares/request-middlewares/request-id-middleware.js';
@@ -46,10 +46,10 @@ class Server extends BaseClass {
 
   private initializeRoutes(): void {
     const authRoute = new AuthRoutes();
-    const userRoute = new UserRoutes();
+    const staffUserRoute = new StaffUserRoutes();
 
     authRoute.authRoutes(this.app);
-    userRoute.userRoutes(this.app);
+    staffUserRoute.staffUserRoutes(this.app);
 
     this.app.get('/', (req, res) => {
       res.send(`${this.config.app.name} is running in ${this.env} environment`);

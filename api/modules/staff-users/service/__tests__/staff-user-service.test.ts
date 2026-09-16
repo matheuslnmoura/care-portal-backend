@@ -8,16 +8,16 @@ const { mockRepository } = vi.hoisted(() => ({
   }
 }));
 
-vi.mock('../../repository/user-repository', () => ({
-  default: vi.fn(function UserRepositoryMock() {
+vi.mock('../../repository/staff-user-repository', () => ({
+  default: vi.fn(function StaffUserRepositoryMock() {
     return mockRepository;
   })
 }));
 
-import UserService from '../user-service.js';
+import StaffUserService from '../staff-user-service.js';
 import { ConflictError, DuplicateEmailError, DuplicatePhoneError } from '../../../../exceptions/exceptions.js';
-import type { UserSchema } from '../../../../models/user-model.js';
-import type { CreatePayload } from '../../repository/user-repository.js';
+import type { StaffUserSchema } from '../../../../models/staff-user-model.js';
+import type { CreatePayload } from '../../repository/staff-user-repository.js';
 
 const createPayloadFixture = (): CreatePayload => ({
   userId: 'user-public-id-1',
@@ -27,7 +27,7 @@ const createPayloadFixture = (): CreatePayload => ({
   birthdate: new Date('1990-01-01')
 });
 
-const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => ({
+const createUserFixture = (overrides: Partial<StaffUserSchema> = {}): StaffUserSchema => ({
   id: 'internal-id-1',
   userId: 'user-public-id-1',
   name: 'Alice',
@@ -42,13 +42,13 @@ const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => (
   ...overrides
 });
 
-describe('UserService', () => {
+describe('StaffUserService', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
-  let userService: UserService;
+  let staffUserService: StaffUserService;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    userService = new UserService();
+    staffUserService = new StaffUserService();
   });
 
   afterEach(() => {
@@ -64,7 +64,7 @@ describe('UserService', () => {
       const createdUser = createUserFixture();
       mockRepository.create.mockResolvedValueOnce(createdUser);
 
-      const result = await userService.createUser({ user: payload });
+      const result = await staffUserService.createUser({ user: payload });
 
       expect(mockRepository.create).toHaveBeenCalledWith({ user: payload });
       expect(result).toEqual(createdUser);
@@ -73,13 +73,13 @@ describe('UserService', () => {
     it('throws ConflictError when the repository throws DuplicateEmailError', async () => {
       mockRepository.create.mockRejectedValueOnce(new DuplicateEmailError());
 
-      await expect(userService.createUser({ user: createPayloadFixture() })).rejects.toThrow(ConflictError);
+      await expect(staffUserService.createUser({ user: createPayloadFixture() })).rejects.toThrow(ConflictError);
     });
 
     it('includes the email and EMAIL_ALREADY_REGISTERED code when DuplicateEmailError is thrown', async () => {
       mockRepository.create.mockRejectedValueOnce(new DuplicateEmailError());
 
-      await expect(userService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
+      await expect(staffUserService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
         code: 'EMAIL_ALREADY_REGISTERED',
         message: 'Email alice@example.com is already registered.'
       });
@@ -88,13 +88,13 @@ describe('UserService', () => {
     it('throws ConflictError when the repository throws DuplicatePhoneError', async () => {
       mockRepository.create.mockRejectedValueOnce(new DuplicatePhoneError());
 
-      await expect(userService.createUser({ user: createPayloadFixture() })).rejects.toThrow(ConflictError);
+      await expect(staffUserService.createUser({ user: createPayloadFixture() })).rejects.toThrow(ConflictError);
     });
 
     it('includes the phone and PHONE_ALREADY_REGISTERED code when DuplicatePhoneError is thrown', async () => {
       mockRepository.create.mockRejectedValueOnce(new DuplicatePhoneError());
 
-      await expect(userService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
+      await expect(staffUserService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
         code: 'PHONE_ALREADY_REGISTERED',
         message: 'Phone number +15551234567 is already registered.'
       });
@@ -103,22 +103,22 @@ describe('UserService', () => {
     it('logs and throws UnexpectedError when the repository throws an unrecognized error', async () => {
       mockRepository.create.mockRejectedValueOnce(new Error('connection lost'));
 
-      await expect(userService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
+      await expect(staffUserService.createUser({ user: createPayloadFixture() })).rejects.toMatchObject({
         code: 'POSTGRES_CREATE_ERROR'
       });
 
       const output = getLoggedOutput();
-      expect(output).toContain('className: [UserService]');
+      expect(output).toContain('className: [StaffUserService]');
       expect(output).toContain('method: [createUser]');
     });
   });
 
-  describe('findUserByEmail', () => {
+  describe('findByEmail', () => {
     it('returns the user when found', async () => {
       const user = createUserFixture();
       mockRepository.findByEmail.mockResolvedValueOnce(user);
 
-      const result = await userService.findUserByEmail({ email: 'alice@example.com' });
+      const result = await staffUserService.findByEmail({ email: 'alice@example.com' });
 
       expect(mockRepository.findByEmail).toHaveBeenCalledWith({ email: 'alice@example.com' });
       expect(result).toEqual(user);
@@ -127,7 +127,7 @@ describe('UserService', () => {
     it('returns null when no user is found', async () => {
       mockRepository.findByEmail.mockResolvedValueOnce(null);
 
-      const result = await userService.findUserByEmail({ email: 'nobody@example.com' });
+      const result = await staffUserService.findByEmail({ email: 'nobody@example.com' });
 
       expect(result).toBeNull();
     });
@@ -135,22 +135,22 @@ describe('UserService', () => {
     it('logs and throws UnexpectedError when the repository throws', async () => {
       mockRepository.findByEmail.mockRejectedValueOnce(new Error('connection lost'));
 
-      await expect(userService.findUserByEmail({ email: 'alice@example.com' })).rejects.toMatchObject({
+      await expect(staffUserService.findByEmail({ email: 'alice@example.com' })).rejects.toMatchObject({
         code: 'GET_USER_ERROR'
       });
 
       const output = getLoggedOutput();
-      expect(output).toContain('className: [UserService]');
-      expect(output).toContain('method: [findUserByEmail]');
+      expect(output).toContain('className: [StaffUserService]');
+      expect(output).toContain('method: [findByEmail]');
     });
   });
 
-  describe('findUserById', () => {
+  describe('findById', () => {
     it('returns the user when found', async () => {
       const user = createUserFixture();
       mockRepository.findById.mockResolvedValueOnce(user);
 
-      const result = await userService.findUserById({ userId: 'user-public-id-1' });
+      const result = await staffUserService.findById({ userId: 'user-public-id-1' });
 
       expect(mockRepository.findById).toHaveBeenCalledWith({ userId: 'user-public-id-1' });
       expect(result).toEqual(user);
@@ -159,7 +159,7 @@ describe('UserService', () => {
     it('returns null when no user is found', async () => {
       mockRepository.findById.mockResolvedValueOnce(null);
 
-      const result = await userService.findUserById({ userId: 'missing-id' });
+      const result = await staffUserService.findById({ userId: 'missing-id' });
 
       expect(result).toBeNull();
     });
@@ -167,13 +167,13 @@ describe('UserService', () => {
     it('logs and throws UnexpectedError when the repository throws', async () => {
       mockRepository.findById.mockRejectedValueOnce(new Error('connection lost'));
 
-      await expect(userService.findUserById({ userId: 'user-public-id-1' })).rejects.toMatchObject({
+      await expect(staffUserService.findById({ userId: 'user-public-id-1' })).rejects.toMatchObject({
         code: 'GET_USER_ERROR'
       });
 
       const output = getLoggedOutput();
-      expect(output).toContain('className: [UserService]');
-      expect(output).toContain('method: [findUserById]');
+      expect(output).toContain('className: [StaffUserService]');
+      expect(output).toContain('method: [findById]');
     });
   });
 });

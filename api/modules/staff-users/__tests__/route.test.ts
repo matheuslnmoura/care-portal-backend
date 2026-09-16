@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Application } from 'express';
-import UserRoutes from '../route.js';
+import StaffUserRoutes from '../route.js';
 import testingConfig from '../../../config/environment-config/config.js';
 
 interface RegisteredRoute {
@@ -19,15 +19,15 @@ const createFakeApp = (registered: RegisteredRoute[]): Application => {
   } as unknown as Application;
 };
 
-describe('UserRoutes', () => {
-  it('registers the user-info route with the expected method and path', () => {
+describe('StaffUserRoutes', () => {
+  it('registers the staff-user-info route with the expected method and path', () => {
     const registered: RegisteredRoute[] = [];
     const app = createFakeApp(registered);
 
-    new UserRoutes().userRoutes(app);
+    new StaffUserRoutes().staffUserRoutes(app);
 
     expect(registered).toEqual([
-      { method: 'GET', path: `${testingConfig.app.baseRoute}/users/user-info`, handlerCount: 1 }
+      { method: 'GET', path: `${testingConfig.app.baseRoute}/staff-users/user-info`, handlerCount: 1 }
     ]);
   });
 });
