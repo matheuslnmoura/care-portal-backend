@@ -1,7 +1,7 @@
-import { getPostgresPool } from '../../../config/database/postgres-client';
-import BaseClass from '../../../base/base-class/base-class';
+import { getPostgresPool } from '../../../config/database/postgres-client.js';
+import BaseClass from '../../../base/base-class/base-class.js';
 import type { PoolClient } from 'pg';
-import { RefreshTokenExpiredError, RefreshTokenNotFoundError, RefreshTokenOwnershipError, RefreshTokenRevokedError } from '../../../exceptions/exceptions';
+import { RefreshTokenExpiredError, RefreshTokenNotFoundError, RefreshTokenOwnershipError, RefreshTokenRevokedError } from '../../../exceptions/exceptions.js';
 
 export interface CreateRefreshTokenParams {
   userId: string;

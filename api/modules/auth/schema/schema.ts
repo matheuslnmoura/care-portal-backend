@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import type { UserSchema } from '../../../models/user-model';
+import type { UserSchema } from '../../../models/user-model.js';
 
 export interface SignUpBodyInterface {
   name: UserSchema['name'];

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import BaseClass from '../base-class';
-import { Logger } from '../../../config/logger/logger';
-import type { ConfigType } from '../../../config/environment-config/config.types';
-import type { RequestContextFields } from '../../../utils/request-context/request-context';
-import config from '../../../config/environment-config/config';
+import BaseClass from '../base-class.js';
+import { Logger } from '../../../config/logger/logger.js';
+import type { ConfigType } from '../../../config/environment-config/config.types.js';
+import type { RequestContextFields } from '../../../utils/request-context/request-context.js';
+import config from '../../../config/environment-config/config.js';
 
 // BaseClass only exposes protected members - this test-only subclass exposes them as-is,
 // with no extra logic, purely so the tests below can observe BaseClass's own behavior.

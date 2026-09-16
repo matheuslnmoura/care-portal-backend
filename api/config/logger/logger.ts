@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import type { Request, Response  } from 'express';
-import type { ConfigType } from '../environment-config/config.types';
-import type { AuditInterface, RequestAuditInterface, ResponseAuditInterface } from '../../models/audit-model';
-import { getRequestId, getUserId } from '../../utils/request-context/request-context';
+import type { ConfigType } from '../environment-config/config.types.js';
+import type { AuditInterface, RequestAuditInterface, ResponseAuditInterface } from '../../models/audit-model.js';
+import { getRequestId, getUserId } from '../../utils/request-context/request-context.js';
 
 interface LoggerInterface extends Omit<AuditInterface, 'req' | 'res' | 'role' | 'actor'> {
   role?: Pick<AuditInterface, 'role'>['role']

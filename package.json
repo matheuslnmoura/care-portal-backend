@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "clear:dist": "rm -rf dist/*",
-    "compile": "npm run clear:dist; tsc -p tsconfig.build.json; node scripts/add-js-extensions.js",
+    "compile": "npm run clear:dist; tsc -p tsconfig.build.json",
     "start": "clear; npm run compile; node dist/server.js",
     "dev": "export NODE_ENV=default; clear; nodemon --watch api -e ts --exec \"tsx api/server.ts\"",
     "lint": "clear; ./node_modules/.bin/eslint \"api/**/*.ts\" ",

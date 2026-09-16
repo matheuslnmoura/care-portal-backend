@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import BaseClass from '../../base/base-class/base-class';
+import BaseClass from '../../base/base-class/base-class.js';
 
 interface PlatformInterface {
   platformType: string;

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
-import BaseController from '../../base/base-controller/base-controller';
-import AuthService from './service/auth-service';
-import { ForbiddenError } from '../../exceptions/exceptions';
+import BaseController from '../../base/base-controller/base-controller.js';
+import AuthService from './service/auth-service.js';
+import { ForbiddenError } from '../../exceptions/exceptions.js';
 import { StatusCodes } from 'http-status-codes';
-import AuthorizationMiddleware from '../../middlewares/authorization-middlewares/authorization-middleware';
-import type { LoginBodyInterface, SignUpBodyInterface } from './schema/schema';
-import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context';
+import AuthorizationMiddleware from '../../middlewares/authorization-middlewares/authorization-middleware.js';
+import type { LoginBodyInterface, SignUpBodyInterface } from './schema/schema.js';
+import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context.js';
 
 class AuthController extends BaseController {
   private readonly service: AuthService;

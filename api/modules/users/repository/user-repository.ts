@@ -1,7 +1,7 @@
-import BaseClass from '../../../base/base-class/base-class';
-import { getPostgresPool } from '../../../config/database/postgres-client';
-import type { UserSchema, UserDatabaseSchema } from '../../../models/user-model';
-import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../exceptions/exceptions';
+import BaseClass from '../../../base/base-class/base-class.js';
+import { getPostgresPool } from '../../../config/database/postgres-client.js';
+import type { UserSchema, UserDatabaseSchema } from '../../../models/user-model.js';
+import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../exceptions/exceptions.js';
 
 export interface FindByIdAndUpdateParams {
   userId: Pick<UserSchema, 'userId'>['userId'];

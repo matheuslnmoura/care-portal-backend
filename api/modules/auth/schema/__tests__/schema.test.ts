@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loginBodySchema, signUpBodySchema } from '../schema';
+import { loginBodySchema, signUpBodySchema } from '../schema.js';
 
 const omitField = (payload: Record<string, unknown>, field: string): Record<string, unknown> => {
   const clone = { ...payload };

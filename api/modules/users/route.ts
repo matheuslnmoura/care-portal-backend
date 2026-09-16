@@ -1,6 +1,6 @@
 import type { Application } from 'express';
-import UsersController from './controller';
-import BaseRoute from '../../base/base-route/base-route';
+import UsersController from './controller.js';
+import BaseRoute from '../../base/base-route/base-route.js';
 
 class UserRoutes extends BaseRoute {
   controller: UsersController;

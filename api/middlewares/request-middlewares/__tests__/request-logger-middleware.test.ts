@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
-import requestLoggerMiddleware from '../request-logger-middleware';
-import type { Logger } from '../../../config/logger/logger';
+import requestLoggerMiddleware from '../request-logger-middleware.js';
+import type { Logger } from '../../../config/logger/logger.js';
 
 const createMockLogger = (): { info: ReturnType<typeof vi.fn> } => ({
   info: vi.fn()

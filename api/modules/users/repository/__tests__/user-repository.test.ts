@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Pool } from 'pg';
-import UserRepository from '../user-repository';
-import { setPostgresPool } from '../../../../config/database/postgres-client';
-import type { UserDatabaseSchema } from '../../../../models/user-model';
-import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../../exceptions/exceptions';
+import UserRepository from '../user-repository.js';
+import { setPostgresPool } from '../../../../config/database/postgres-client.js';
+import type { UserDatabaseSchema } from '../../../../models/user-model.js';
+import { BadRequestError, DuplicateEmailError, DuplicatePhoneError, NotFoundError } from '../../../../exceptions/exceptions.js';
 
 interface FakePool {
   query: ReturnType<typeof vi.fn>;

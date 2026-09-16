@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import BaseRoute from '../base-route';
-import testingConfig from '../../../config/environment-config/config';
+import BaseRoute from '../base-route.js';
+import testingConfig from '../../../config/environment-config/config.js';
 
 describe('BaseRoute', () => {
   describe('getBasePath', () => {

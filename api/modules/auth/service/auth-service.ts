@@ -1,18 +1,18 @@
-import BaseClass from '../../../base/base-class/base-class';
-import type { UserSchema } from '../../../models/user-model';
-import PasswordManager from '../../../utils/password-manager/password-manager';
-import UserService from '../../users/service/user-service';
-import UserRefreshTokenRepository from '../repository/user-refresh-token-repository';
+import BaseClass from '../../../base/base-class/base-class.js';
+import type { UserSchema } from '../../../models/user-model.js';
+import PasswordManager from '../../../utils/password-manager/password-manager.js';
+import UserService from '../../users/service/user-service.js';
+import UserRefreshTokenRepository from '../repository/user-refresh-token-repository.js';
 import { nanoid } from 'nanoid';
-import type { TokensInterface } from '../../../utils/token-manager/token-manager';
-import { TokenManager } from '../../../utils/token-manager/token-manager';
+import type { TokensInterface } from '../../../utils/token-manager/token-manager.js';
+import { TokenManager } from '../../../utils/token-manager/token-manager.js';
 import {
   RefreshTokenNotFoundError,
   RefreshTokenOwnershipError,
   RefreshTokenRevokedError,
   RefreshTokenExpiredError,
   UnauthorizedError
-} from '../../../exceptions/exceptions';
+} from '../../../exceptions/exceptions.js';
 
 export interface UserPayload  {
   name: UserSchema['name'];

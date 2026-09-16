@@ -14,10 +14,10 @@ vi.mock('../service/user-service', () => ({
 
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import UsersController from '../controller';
-import { UnexpectedError } from '../../../exceptions/exceptions';
-import type { UserSchema } from '../../../models/user-model';
-import { getRequestContext, requestContextStorage } from '../../../utils/request-context/request-context';
+import UsersController from '../controller.js';
+import { UnexpectedError } from '../../../exceptions/exceptions.js';
+import type { UserSchema } from '../../../models/user-model.js';
+import { getRequestContext, requestContextStorage } from '../../../utils/request-context/request-context.js';
 
 interface MockResponse {
   errorDetails?: unknown;

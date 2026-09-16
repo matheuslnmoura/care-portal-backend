@@ -18,10 +18,10 @@ vi.mock('../service/auth-service', () => ({
 
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import AuthController from '../controller';
-import { ConflictError, UnauthorizedError } from '../../../exceptions/exceptions';
-import type { UserSchema } from '../../../models/user-model';
-import { getRequestContext, getUserId, requestContextStorage } from '../../../utils/request-context/request-context';
+import AuthController from '../controller.js';
+import { ConflictError, UnauthorizedError } from '../../../exceptions/exceptions.js';
+import type { UserSchema } from '../../../models/user-model.js';
+import { getRequestContext, getUserId, requestContextStorage } from '../../../utils/request-context/request-context.js';
 
 interface MockResponse {
   errorDetails?: unknown;

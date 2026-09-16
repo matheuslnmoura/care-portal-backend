@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import AuthorizationMiddleware from '../authorization-middleware';
-import { TokenManager } from '../../../utils/token-manager/token-manager';
-import { UnauthorizedError } from '../../../exceptions/exceptions';
-import testingConfig from '../../../config/environment-config/config';
-import { getRequestContext, getUserId, requestContextStorage } from '../../../utils/request-context/request-context';
+import AuthorizationMiddleware from '../authorization-middleware.js';
+import { TokenManager } from '../../../utils/token-manager/token-manager.js';
+import { UnauthorizedError } from '../../../exceptions/exceptions.js';
+import testingConfig from '../../../config/environment-config/config.js';
+import { getRequestContext, getUserId, requestContextStorage } from '../../../utils/request-context/request-context.js';
 
 const tokenManager = new TokenManager();
 

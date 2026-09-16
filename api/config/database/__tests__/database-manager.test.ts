@@ -38,9 +38,9 @@ vi.mock('pg', () => ({
   Pool: MockPoolCtor
 }));
 
-import DatabaseManager from '../database-manager';
-import { getPostgresPool } from '../postgres-client';
-import type { MongoDBConfig, PostgresConfig, RedisConfig } from '../../environment-config/config.types';
+import DatabaseManager from '../database-manager.js';
+import { getPostgresPool } from '../postgres-client.js';
+import type { MongoDBConfig, PostgresConfig, RedisConfig } from '../../environment-config/config.types.js';
 
 const mongoConfigFixture: MongoDBConfig = {
   url: 'mongodb://localhost:27017/test',

@@ -2,9 +2,9 @@ import type { JwtPayload, SignOptions } from 'jsonwebtoken';
 import ms, { type StringValue } from 'ms';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import BaseClass from '../../base/base-class/base-class';
-import { UnexpectedError } from '../../exceptions/exceptions';
-import { type UserSchema } from '../../models/user-model';
+import BaseClass from '../../base/base-class/base-class.js';
+import { UnexpectedError } from '../../exceptions/exceptions.js';
+import { type UserSchema } from '../../models/user-model.js';
 
 export interface GenerateTokenInterface {
   payload: VerifyTokenResponseInterface

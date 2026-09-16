@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EventEmitter } from 'node:events';
 import type { NextFunction, Request, Response } from 'express';
-import responseLoggerMiddleware from '../response-logger-middleware';
-import type { Logger } from '../../../config/logger/logger';
-import { BadRequestError } from '../../../exceptions/exceptions';
-import { requestContextStorage, setRequestContext } from '../../../utils/request-context/request-context';
+import responseLoggerMiddleware from '../response-logger-middleware.js';
+import type { Logger } from '../../../config/logger/logger.js';
+import { BadRequestError } from '../../../exceptions/exceptions.js';
+import { requestContextStorage, setRequestContext } from '../../../utils/request-context/request-context.js';
 
 interface MockResponse extends EventEmitter {
   statusCode: number;

@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import BaseClass from '../../base/base-class/base-class';
+import BaseClass from '../../base/base-class/base-class.js';
 
 class PasswordManager extends BaseClass {
   private readonly saltRounds: number;

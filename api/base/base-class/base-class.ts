@@ -1,7 +1,7 @@
-import type { ConfigType } from '../../config/environment-config/config.types';
-import type { RequestContextFields } from '../../utils/request-context/request-context';
-import { Logger } from '../../config/logger/logger';
-import config from '../../config/environment-config/config';
+import type { ConfigType } from '../../config/environment-config/config.types.js';
+import type { RequestContextFields } from '../../utils/request-context/request-context.js';
+import { Logger } from '../../config/logger/logger.js';
+import config from '../../config/environment-config/config.js';
 
 class BaseClass {
   protected config: ConfigType;

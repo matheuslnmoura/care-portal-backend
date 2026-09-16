@@ -1,15 +1,15 @@
-import './bootstrap-env';
+import './bootstrap-env.js';
 import express, { type Application } from 'express';
 import cookieParser from 'cookie-parser';
-import BaseClass from './base/base-class/base-class';
-import UserRoutes from './modules/users/route';
-import DatabaseManager from './config/database/database-manager';
-import PlatformMiddleware from './middlewares/platform-middleware/platform-middleware';
-import requestIdMiddleware from './middlewares/request-middlewares/request-id-middleware';
-import requestLoggerMiddleware from './middlewares/request-middlewares/request-logger-middleware';
-import responseLoggerMiddleware from './middlewares/request-middlewares/response-logger-middleware';
-import AuthorizationMiddleware from './middlewares/authorization-middlewares/authorization-middleware';
-import AuthRoutes from './modules/auth/route';
+import BaseClass from './base/base-class/base-class.js';
+import UserRoutes from './modules/users/route.js';
+import DatabaseManager from './config/database/database-manager.js';
+import PlatformMiddleware from './middlewares/platform-middleware/platform-middleware.js';
+import requestIdMiddleware from './middlewares/request-middlewares/request-id-middleware.js';
+import requestLoggerMiddleware from './middlewares/request-middlewares/request-logger-middleware.js';
+import responseLoggerMiddleware from './middlewares/request-middlewares/response-logger-middleware.js';
+import AuthorizationMiddleware from './middlewares/authorization-middlewares/authorization-middleware.js';
+import AuthRoutes from './modules/auth/route.js';
 
 class Server extends BaseClass {
   private readonly app: Application;

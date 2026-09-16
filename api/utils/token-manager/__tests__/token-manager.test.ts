@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
-import { TokenManager } from '../token-manager';
-import { UnexpectedError } from '../../../exceptions/exceptions';
+import { TokenManager } from '../token-manager.js';
+import { UnexpectedError } from '../../../exceptions/exceptions.js';
 
 describe('TokenManager', () => {
   describe('generateAccessToken', () => {

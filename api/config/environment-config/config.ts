@@ -1,4 +1,4 @@
-import type { ConfigType } from './config.types';
+import type { ConfigType } from './config.types.js';
 
 const toInt = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value);

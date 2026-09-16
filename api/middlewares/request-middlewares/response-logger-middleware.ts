@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { Logger } from '../../config/logger/logger';
-import { CustomRequestError } from '../../exceptions/exceptions';
-import { getRequestContext } from '../../utils/request-context/request-context';
+import type { Logger } from '../../config/logger/logger.js';
+import { CustomRequestError } from '../../exceptions/exceptions.js';
+import { getRequestContext } from '../../utils/request-context/request-context.js';
 
 interface ErrorObjectInterface {
   customRequestError: boolean;

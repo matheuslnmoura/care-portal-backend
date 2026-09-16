@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
 import { StatusCodes } from 'http-status-codes';
-import RequestSchemaMiddleware from '../request-schema-middleware';
+import RequestSchemaMiddleware from '../request-schema-middleware.js';
 
 const createMockRequest = (overrides: Record<string, unknown> = {}): Request => ({
   headers: {},

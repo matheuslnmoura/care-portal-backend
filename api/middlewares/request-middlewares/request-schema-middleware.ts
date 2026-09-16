@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import type Joi from 'joi';
-import { BadRequestError, CustomRequestError } from '../../exceptions/exceptions';
-import BaseClass from '../../base/base-class/base-class';
+import { BadRequestError, CustomRequestError } from '../../exceptions/exceptions.js';
+import BaseClass from '../../base/base-class/base-class.js';
 import { StatusCodes } from 'http-status-codes';
-import { setRequestContext } from '../../utils/request-context/request-context';
+import { setRequestContext } from '../../utils/request-context/request-context.js';
 
 interface RequestSchemaInterface<BodySchemaInterface = unknown, HeaderSchemaInterface = unknown> {
   bodySchema?: Joi.ObjectSchema<BodySchemaInterface>;

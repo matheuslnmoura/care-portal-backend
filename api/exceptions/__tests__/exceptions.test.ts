@@ -13,7 +13,7 @@ import {
   TooManyRequestsError,
   UnauthorizedError,
   UnexpectedError
-} from '../exceptions';
+} from '../exceptions.js';
 
 describe('CustomRequestError', () => {
   it('sets message, statusCode and code from its constructor', () => {

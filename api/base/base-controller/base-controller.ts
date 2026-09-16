@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import BaseClass from '../base-class/base-class';
-import { CustomRequestError } from '../../exceptions/exceptions';
+import BaseClass from '../base-class/base-class.js';
+import { CustomRequestError } from '../../exceptions/exceptions.js';
 
 class BaseController extends BaseClass {
   protected handleError(error: unknown, res: Response): void {

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
-import { Logger } from '../logger';
-import { requestContextStorage } from '../../../utils/request-context/request-context';
-import testingConfig from '../../environment-config/config';
+import { Logger } from '../logger.js';
+import { requestContextStorage } from '../../../utils/request-context/request-context.js';
+import testingConfig from '../../environment-config/config.js';
 
 describe('Logger', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;

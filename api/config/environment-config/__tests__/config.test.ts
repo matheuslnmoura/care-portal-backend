@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ConfigType } from '../config.types';
+import type { ConfigType } from '../config.types.js';
 
 // config.ts computes everything from process.env at module-load time, so each test forces a
 // fresh evaluation via resetModules() + a dynamic import, the same pattern used for
@@ -14,7 +14,7 @@ describe('environment config', () => {
     delete process.env.PASSWORD_SALT_ROUNDS;
 
     try {
-      const { default: config } = await import('../config') as { default: ConfigType };
+      const { default: config } = await import('../config.js') as { default: ConfigType };
 
       expect(config.app.baseRoute).toBe('/api');
       expect(config.app.port).toBe(8090);
@@ -74,7 +74,7 @@ describe('environment config', () => {
     });
 
     it('reads every value from its corresponding env var', async () => {
-      const { default: config } = await import('../config') as { default: ConfigType };
+      const { default: config } = await import('../config.js') as { default: ConfigType };
 
       expect(config.app.baseRoute).toBe('/v2');
       expect(config.app.port).toBe(4000);
@@ -104,13 +104,13 @@ describe('environment config', () => {
   it('falls back to the default when a numeric env var is not a valid number', async () => {
     vi.stubEnv('PORT', 'not-a-number');
 
-    const { default: config } = await import('../config') as { default: ConfigType };
+    const { default: config } = await import('../config.js') as { default: ConfigType };
 
     expect(config.app.port).toBe(8090);
   });
 
   it('publicRoutes is a fixed list, not env-driven', async () => {
-    const { default: config } = await import('../config') as { default: ConfigType };
+    const { default: config } = await import('../config.js') as { default: ConfigType };
 
     expect(config.application.publicRoutes).toEqual([
       '/api/auth/signup',

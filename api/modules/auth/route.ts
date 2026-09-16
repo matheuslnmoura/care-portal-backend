@@ -1,8 +1,8 @@
 import type { Application } from 'express';
-import AuthController from './controller';
-import BaseRoute from '../../base/base-route/base-route';
-import RequestSchemaMiddleware from '../../middlewares/request-middlewares/request-schema-middleware';
-import { loginBodySchema, signUpBodySchema } from './schema/schema';
+import AuthController from './controller.js';
+import BaseRoute from '../../base/base-route/base-route.js';
+import RequestSchemaMiddleware from '../../middlewares/request-middlewares/request-schema-middleware.js';
+import { loginBodySchema, signUpBodySchema } from './schema/schema.js';
 
 class AuthRoutes extends BaseRoute {
   controller: AuthController;

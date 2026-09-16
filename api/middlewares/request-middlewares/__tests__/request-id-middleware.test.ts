@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
-import requestIdMiddleware from '../request-id-middleware';
-import { getRequestId } from '../../../utils/request-context/request-context';
+import requestIdMiddleware from '../request-id-middleware.js';
+import { getRequestId } from '../../../utils/request-context/request-context.js';
 
 describe('requestIdMiddleware', () => {
   it('assigns a non-empty requestId to the request', () => {

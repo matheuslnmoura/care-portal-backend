@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import { TokenManager } from '../../utils/token-manager/token-manager';
-import BaseClass from '../../base/base-class/base-class';
+import { TokenManager } from '../../utils/token-manager/token-manager.js';
+import BaseClass from '../../base/base-class/base-class.js';
 import { StatusCodes } from 'http-status-codes';
-import { CustomRequestError, UnauthorizedError } from '../../exceptions/exceptions';
-import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context';
+import { CustomRequestError, UnauthorizedError } from '../../exceptions/exceptions.js';
+import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context.js';
 
 class AuthorizationMiddleware extends BaseClass {
   private readonly tokenManager: TokenManager;

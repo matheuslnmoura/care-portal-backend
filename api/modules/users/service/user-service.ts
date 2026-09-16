@@ -1,8 +1,8 @@
-import { ConflictError, DuplicateEmailError, DuplicatePhoneError, UnexpectedError } from '../../../exceptions/exceptions';
-import BaseClass from '../../../base/base-class/base-class';
-import type { UserSchema } from '../../../models/user-model';
-import UserRepository from '../repository/user-repository';
-import type { CreatePayload } from '../repository/user-repository';
+import { ConflictError, DuplicateEmailError, DuplicatePhoneError, UnexpectedError } from '../../../exceptions/exceptions.js';
+import BaseClass from '../../../base/base-class/base-class.js';
+import type { UserSchema } from '../../../models/user-model.js';
+import UserRepository from '../repository/user-repository.js';
+import type { CreatePayload } from '../repository/user-repository.js';
 
 class UserService extends BaseClass {
   private readonly repository: UserRepository;

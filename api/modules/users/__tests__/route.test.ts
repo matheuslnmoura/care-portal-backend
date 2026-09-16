@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Application } from 'express';
-import UserRoutes from '../route';
-import testingConfig from '../../../config/environment-config/config';
+import UserRoutes from '../route.js';
+import testingConfig from '../../../config/environment-config/config.js';
 
 interface RegisteredRoute {
   method: string;

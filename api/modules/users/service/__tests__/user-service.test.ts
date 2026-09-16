@@ -14,10 +14,10 @@ vi.mock('../../repository/user-repository', () => ({
   })
 }));
 
-import UserService from '../user-service';
-import { ConflictError, DuplicateEmailError, DuplicatePhoneError } from '../../../../exceptions/exceptions';
-import type { UserSchema } from '../../../../models/user-model';
-import type { CreatePayload } from '../../repository/user-repository';
+import UserService from '../user-service.js';
+import { ConflictError, DuplicateEmailError, DuplicatePhoneError } from '../../../../exceptions/exceptions.js';
+import type { UserSchema } from '../../../../models/user-model.js';
+import type { CreatePayload } from '../../repository/user-repository.js';
 
 const createPayloadFixture = (): CreatePayload => ({
   userId: 'user-public-id-1',

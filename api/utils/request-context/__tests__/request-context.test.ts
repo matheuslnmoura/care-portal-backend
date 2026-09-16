@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRequestContext, getRequestId, getUserId, requestContextStorage, setContextUserId, setRequestContext } from '../request-context';
+import { getRequestContext, getRequestId, getUserId, requestContextStorage, setContextUserId, setRequestContext } from '../request-context.js';
 
 describe('requestContext', () => {
   it('returns undefined when called outside of any request context', () => {

@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import { createClient, type RedisClientType } from 'redis';
-import BaseClass from '../../base/base-class/base-class';
+import BaseClass from '../../base/base-class/base-class.js';
 import { Pool, type PoolClient } from 'pg';
-import type { MongoDBConfig, RedisConfig, PostgresConfig } from '../environment-config/config.types';
-import { setPostgresPool } from './postgres-client';
+import type { MongoDBConfig, RedisConfig, PostgresConfig } from '../environment-config/config.types.js';
+import { setPostgresPool } from './postgres-client.js';
 
 interface DatabaseManagerParams {
   mongoConfig: MongoDBConfig;

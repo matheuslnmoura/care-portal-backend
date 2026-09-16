@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Pool } from 'pg';
-import { getPostgresPool, setPostgresPool } from '../postgres-client';
+import { getPostgresPool, setPostgresPool } from '../postgres-client.js';
 
 // postgresPool is module-level state with no reset between tests in this file, so order matters:
 // the "not initialized" case must run before any test calls setPostgresPool.

@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import type { Request, Response, NextFunction } from 'express';
-import { requestContextStorage } from '../../utils/request-context/request-context';
+import { requestContextStorage } from '../../utils/request-context/request-context.js';
 
 function requestIdMiddleware() {
   return (req: Request, res: Response, next: NextFunction): void => {

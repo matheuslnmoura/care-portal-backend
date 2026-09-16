@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import PasswordManager from '../password-manager';
+import PasswordManager from '../password-manager.js';
 
 describe('PasswordManager', () => {
   const passwordManager = new PasswordManager();

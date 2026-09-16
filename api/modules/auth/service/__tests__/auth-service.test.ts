@@ -53,14 +53,14 @@ vi.mock('nanoid', () => ({
   nanoid: vi.fn(() => 'fixed-nanoid')
 }));
 
-import AuthService from '../auth-service';
+import AuthService from '../auth-service.js';
 import {
   RefreshTokenExpiredError,
   RefreshTokenNotFoundError,
   RefreshTokenOwnershipError,
   RefreshTokenRevokedError
-} from '../../../../exceptions/exceptions';
-import type { UserSchema } from '../../../../models/user-model';
+} from '../../../../exceptions/exceptions.js';
+import type { UserSchema } from '../../../../models/user-model.js';
 
 const createUserFixture = (overrides: Partial<UserSchema> = {}): UserSchema => ({
   id: 'internal-uuid-1',

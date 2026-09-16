@@ -31,7 +31,7 @@ describe('bootstrap-env', () => {
   it('loads the base .env file first, then the environment-specific file with override, in that order', async () => {
     process.env.APPLICATION_ENVIRONMENT = 'testing';
 
-    await import('../bootstrap-env');
+    await import('../bootstrap-env.js');
 
     expect(mockDotenvConfig).toHaveBeenCalledTimes(2);
 
@@ -50,7 +50,7 @@ describe('bootstrap-env', () => {
   it('defaults APPLICATION_ENVIRONMENT to "default" when it is not set, and loads the matching file', async () => {
     delete process.env.APPLICATION_ENVIRONMENT;
 
-    await import('../bootstrap-env');
+    await import('../bootstrap-env.js');
 
     expect(process.env.APPLICATION_ENVIRONMENT).toBe('default');
 
@@ -61,7 +61,7 @@ describe('bootstrap-env', () => {
   it('preserves an already-set APPLICATION_ENVIRONMENT instead of overwriting it', async () => {
     process.env.APPLICATION_ENVIRONMENT = 'production';
 
-    await import('../bootstrap-env');
+    await import('../bootstrap-env.js');
 
     expect(process.env.APPLICATION_ENVIRONMENT).toBe('production');
 

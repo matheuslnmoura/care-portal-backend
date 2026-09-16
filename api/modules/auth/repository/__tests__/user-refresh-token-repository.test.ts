@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Pool, PoolClient } from 'pg';
-import UserRefreshTokenRepository from '../user-refresh-token-repository';
-import { setPostgresPool } from '../../../../config/database/postgres-client';
+import UserRefreshTokenRepository from '../user-refresh-token-repository.js';
+import { setPostgresPool } from '../../../../config/database/postgres-client.js';
 import {
   RefreshTokenExpiredError,
   RefreshTokenNotFoundError,
   RefreshTokenOwnershipError,
   RefreshTokenRevokedError
-} from '../../../../exceptions/exceptions';
+} from '../../../../exceptions/exceptions.js';
 
 interface FakePool {
   query: ReturnType<typeof vi.fn>;

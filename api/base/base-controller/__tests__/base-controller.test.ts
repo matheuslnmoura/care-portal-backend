@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import BaseController from '../base-controller';
-import { CustomRequestError, NotFoundError } from '../../../exceptions/exceptions';
+import BaseController from '../base-controller.js';
+import { CustomRequestError, NotFoundError } from '../../../exceptions/exceptions.js';
 
 // handleError is protected - this test-only subclass exposes it as-is, with no extra logic,
 // purely so the tests below can observe BaseController's own behavior.
