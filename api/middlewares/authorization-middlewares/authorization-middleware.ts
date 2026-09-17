@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { TokenManager } from '../../utils/token-manager/token-manager.js';
 import BaseClass from '../../base/base-class/base-class.js';
 import { StatusCodes } from 'http-status-codes';
-import { CustomRequestError, UnauthorizedError } from '../../exceptions/exceptions.js';
+import { UnauthorizedError } from '../../exceptions/exceptions.js';
 import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context.js';
 
 class AuthorizationMiddleware extends BaseClass {
@@ -15,48 +15,37 @@ class AuthorizationMiddleware extends BaseClass {
     return (req: Request, res: Response, next: NextFunction): void => {
       setRequestContext({ className: 'AuthorizationMiddleware', methodName: 'verifyAccessToken' });
 
-      try {
-        const { publicRoutes } = this.config.application;
-        if (publicRoutes.includes(req.path)) {
-          return next();
-        }
-        const authHeader = req.headers.authorization;
-        if (authHeader === undefined || authHeader === null) {
-          res.status(StatusCodes.PRECONDITION_FAILED).send({ message: 'Authorization header missing', code: 'NO_AUTH_HEADER' });
-          return;
-        }
-
-        const [ type, accessToken ] = authHeader.split(' ');
-
-        if (type !== 'Bearer') {
-          res.status(StatusCodes.PRECONDITION_FAILED).send({ message: 'Invalid token type', code: 'INVALID_AUTH_HEADER_TYPE' });
-          return;
-        }
-
-        const payload = this.tokenManager.verifyAccessToken({ accessToken });
-
-        if (payload?.userId === null || payload?.userId === undefined ) {
-          throw new UnauthorizedError({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
-        }
-
-        req.user = payload.userId as string;
-        setContextUserId(req.user);
+      const { publicRoutes } = this.config.application;
+      if (publicRoutes.includes(req.path)) {
         next();
-
-      } catch (error) {
-        res.errorDetails = error;
-        let statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-        let message = 'Error verifying accessToken';
-        let code: string | undefined = 'INTERNAL_SERVER_ERROR';
-
-        if (error instanceof CustomRequestError) {
-          statusCode = error.statusCode;
-          message = error.message;
-          code = error.code;
-        }
-
-        res.status(statusCode).send({ message, code });
+        return;
       }
+      const authHeader = req.headers.authorization;
+      if (authHeader === undefined || authHeader === null) {
+        res.status(StatusCodes.PRECONDITION_FAILED).send({ message: 'Authorization header missing', code: 'NO_AUTH_HEADER' });
+        return;
+      }
+
+      const [ type, accessToken ] = authHeader.split(' ');
+
+      if (type !== 'Bearer') {
+        res.status(StatusCodes.PRECONDITION_FAILED).send({ message: 'Invalid token type', code: 'INVALID_AUTH_HEADER_TYPE' });
+        return;
+      }
+
+      // A thrown error here (this deliberate one, or a raw jsonwebtoken error for a malformed/
+      // tampered token) is a synchronous throw from within Express's own middleware dispatch,
+      // which Express catches and forwards to the centralized error-handling middleware itself -
+      // no local try/catch needed.
+      const payload = this.tokenManager.verifyAccessToken({ accessToken });
+
+      if (payload?.userId === null || payload?.userId === undefined) {
+        throw new UnauthorizedError({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
+      }
+
+      req.user = payload.userId as string;
+      setContextUserId(req.user);
+      next();
     };
   }
   handleUserId(req: Request): string {

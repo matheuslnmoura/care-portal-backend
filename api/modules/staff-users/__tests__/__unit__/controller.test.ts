@@ -15,7 +15,7 @@ vi.mock('../../service/staff-user-service', () => ({
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import StaffUsersController from '../../controller.js';
-import { UnexpectedError } from '../../../../exceptions/exceptions.js';
+import { NotFoundError, UnauthorizedError, UnexpectedError } from '../../../../exceptions/exceptions.js';
 import type { StaffUserSchema } from '../../../../models/staff-user-model.js';
 import { getRequestContext, requestContextStorage } from '../../../../utils/request-context/request-context.js';
 
@@ -55,27 +55,25 @@ describe('StaffUsersController', () => {
   describe('getUserInfo', () => {
     const controller = new StaffUsersController();
 
-    it('returns 401 when the request has no authenticated user', async () => {
+    it('throws UnauthorizedError when the request has no authenticated user', async () => {
       const req = createMockRequest();
       const res = createMockResponse();
 
-      await controller.getUserInfo(req, res as unknown as Response);
+      await expect(controller.getUserInfo(req, res as unknown as Response)).rejects.toThrow(UnauthorizedError);
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(res.send).toHaveBeenCalledWith({ message: 'User Id not found', code: 'MISSING_USER_ID' });
+      expect(res.status).not.toHaveBeenCalled();
       expect(mockStaffUserService.findById).not.toHaveBeenCalled();
     });
 
-    it('returns 404 when the service finds no matching user', async () => {
+    it('throws NotFoundError when the service finds no matching user', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
       mockStaffUserService.findById.mockResolvedValueOnce(null);
 
-      await controller.getUserInfo(req, res as unknown as Response);
+      await expect(controller.getUserInfo(req, res as unknown as Response)).rejects.toThrow(NotFoundError);
 
       expect(mockStaffUserService.findById).toHaveBeenCalledWith({ userId: 'user-public-id-1' });
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.NOT_FOUND);
-      expect(res.send).toHaveBeenCalledWith({ message: 'User information not found', code: 'USER_INFO_NOT_FOUND' });
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('returns only name and contacts when the user is found', async () => {
@@ -101,20 +99,16 @@ describe('StaffUsersController', () => {
       expect(Object.keys(sentBody).sort()).toEqual([ 'contacts', 'name' ]);
     });
 
-    it('delegates unexpected service errors to the shared error handler', async () => {
+    it('propagates unexpected service errors for the centralized error handler to map', async () => {
       const req = createMockRequest({ user: 'user-public-id-1' });
       const res = createMockResponse();
       mockStaffUserService.findById.mockRejectedValueOnce(
         new UnexpectedError({ message: 'An error occurred while getting user information.', code: 'GET_USER_ERROR' })
       );
 
-      await controller.getUserInfo(req, res as unknown as Response);
+      await expect(controller.getUserInfo(req, res as unknown as Response)).rejects.toThrow(UnexpectedError);
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(res.send).toHaveBeenCalledWith({
-        message: 'An error occurred while getting user information.',
-        code: 'GET_USER_ERROR'
-      });
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('sets the request context for logging purposes', async () => {

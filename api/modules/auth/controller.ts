@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import BaseController from '../../base/base-controller/base-controller.js';
+import BaseClass from '../../base/base-class/base-class.js';
 import AuthService from './service/auth-service.js';
 import { ForbiddenError } from '../../exceptions/exceptions.js';
 import { StatusCodes } from 'http-status-codes';
@@ -7,7 +7,7 @@ import AuthorizationMiddleware from '../../middlewares/authorization-middlewares
 import type { LoginBodyInterface, SignUpBodyInterface } from './schema/schema.js';
 import { setContextUserId, setRequestContext } from '../../utils/request-context/request-context.js';
 
-class AuthController extends BaseController {
+class AuthController extends BaseClass {
   private readonly service: AuthService;
   private readonly authorizationMiddleware: AuthorizationMiddleware;
   constructor() {
@@ -18,116 +18,95 @@ class AuthController extends BaseController {
   }
 
   async signUp(req: Request, res: Response): Promise<void> {
-    try {
-      setRequestContext({ ...this.context, methodName: 'signUp' });
-      const { name, email, password, phone, birthdate, tenantId } = req.body as SignUpBodyInterface;
+    setRequestContext({ ...this.context, methodName: 'signUp' });
+    const { name, email, password, phone, birthdate, tenantId } = req.body as SignUpBodyInterface;
 
-      const user = await this.service.createUser({ name, email, password, phone, birthdate, tenantId });
+    const user = await this.service.createUser({ name, email, password, phone, birthdate, tenantId });
 
-      res.status(StatusCodes.OK).send({ userId: user.userId, name: user.name, email: user.contacts.email, phone: user.contacts.phone });
-    } catch (error: unknown) {
-      this.handleError(error, res);
-    }
+    res.status(StatusCodes.OK).send({ userId: user.userId, name: user.name, email: user.contacts.email, phone: user.contacts.phone });
   }
+
   async login(req: Request, res: Response): Promise<void> {
-    try {
-      setRequestContext({ ...this.context, methodName: 'login' });
-      const { email, password } = req.body as LoginBodyInterface;
+    setRequestContext({ ...this.context, methodName: 'login' });
+    const { email, password } = req.body as LoginBodyInterface;
 
-      const { accessToken, refreshToken, userId } = await this.service.authenticateUser({ email, password, userAgent: req.headers['user-agent'] });
-      req.user = userId;
-      setContextUserId(userId);
+    const { accessToken, refreshToken, userId } = await this.service.authenticateUser({ email, password, userAgent: req.headers['user-agent'] });
+    req.user = userId;
+    setContextUserId(userId);
 
-      if (req.platformType !== 'mobile') {
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict'
-        });
-        res.status(StatusCodes.OK).send({ accessToken });
-        return;
-      }
-      res.status(StatusCodes.OK).send({ accessToken, refreshToken });
-    } catch (error: unknown) {
-      this.handleError(error, res);
+    if (req.platformType !== 'mobile') {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict'
+      });
+      res.status(StatusCodes.OK).send({ accessToken });
+      return;
     }
+    res.status(StatusCodes.OK).send({ accessToken, refreshToken });
   }
 
   async refreshToken(req: Request, res: Response): Promise<void> {
-    try {
-      setRequestContext({ ...this.context, methodName: 'refreshToken' });
+    setRequestContext({ ...this.context, methodName: 'refreshToken' });
 
-      const currentRefreshToken = this.authorizationMiddleware.handleGetRefreshToken(req);
+    const currentRefreshToken = this.authorizationMiddleware.handleGetRefreshToken(req);
 
-      if (currentRefreshToken === undefined) throw new ForbiddenError({ code: 'NO_REFRESH_TOKEN', message: 'refreshToken not found' });
+    if (currentRefreshToken === undefined) throw new ForbiddenError({ code: 'NO_REFRESH_TOKEN', message: 'refreshToken not found' });
 
-      const { accessToken, refreshToken, userId } = await this.service.refreshToken({ refreshToken: currentRefreshToken, userAgent: req.headers['user-agent'] });
-      req.user = userId;
-      setContextUserId(userId);
+    const { accessToken, refreshToken, userId } = await this.service.refreshToken({ refreshToken: currentRefreshToken, userAgent: req.headers['user-agent'] });
+    req.user = userId;
+    setContextUserId(userId);
 
-      if (req.platformType !== 'mobile') {
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict'
-        });
-        res.status(StatusCodes.OK).send({ accessToken });
-        return;
-      }
-      res.status(StatusCodes.OK).send({ accessToken, refreshToken });
-    } catch (error: unknown) {
-      this.handleError(error, res);
+    if (req.platformType !== 'mobile') {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict'
+      });
+      res.status(StatusCodes.OK).send({ accessToken });
+      return;
     }
+    res.status(StatusCodes.OK).send({ accessToken, refreshToken });
   }
 
   async logout(req: Request, res: Response): Promise<void> {
-    try {
-      setRequestContext({ ...this.context, methodName: 'logout' });
-      const userId = this.authorizationMiddleware.handleUserId(req);
+    setRequestContext({ ...this.context, methodName: 'logout' });
+    const userId = this.authorizationMiddleware.handleUserId(req);
 
-      const refreshToken = this.authorizationMiddleware.handleGetRefreshToken(req);
+    const refreshToken = this.authorizationMiddleware.handleGetRefreshToken(req);
 
-      await this.service.logout({ userId, refreshToken });
+    await this.service.logout({ userId, refreshToken });
 
-      if (req.platformType !== 'mobile') {
-        res.cookie('refreshToken', '', {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          expires: new Date(0),
-          path: '/'
-        });
-      }
-
-      res.sendStatus(StatusCodes.NO_CONTENT);
-
-    } catch (error) {
-      this.handleError(error, res);
+    if (req.platformType !== 'mobile') {
+      res.cookie('refreshToken', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        expires: new Date(0),
+        path: '/'
+      });
     }
+
+    res.sendStatus(StatusCodes.NO_CONTENT);
   }
 
   async logoutFromAllDevices(req: Request, res: Response): Promise<void> {
-    try {
-      setRequestContext({ ...this.context, methodName: 'logoutFromAllDevices' });
-      const userId = this.authorizationMiddleware.handleUserId(req);
+    setRequestContext({ ...this.context, methodName: 'logoutFromAllDevices' });
+    const userId = this.authorizationMiddleware.handleUserId(req);
 
-      await this.service.logoutFromAllDevices({ userId });
+    await this.service.logoutFromAllDevices({ userId });
 
-      if (req.platformType !== 'mobile') {
-        res.cookie('refreshToken', '', {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          expires: new Date(0),
-          path: '/'
-        });
-      }
-
-      res.sendStatus(StatusCodes.NO_CONTENT);
-
-    } catch (error) {
-      this.handleError(error, res);
+    if (req.platformType !== 'mobile') {
+      res.cookie('refreshToken', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        expires: new Date(0),
+        path: '/'
+      });
     }
+
+    res.sendStatus(StatusCodes.NO_CONTENT);
   }
 }
 

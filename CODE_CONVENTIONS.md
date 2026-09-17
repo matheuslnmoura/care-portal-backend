@@ -76,9 +76,9 @@ explicitly and prominently rather than silently building on it as if it were con
 - Config values are read from `process.env` with a documented fallback in
   `api/config/environment-config/config.ts` — never hardcode a value that legitimately differs per
   environment (a host, a credential, a pool size) directly in code.
-- **Error-handling target state (not yet migrated — see `.local/technical-debt.md`):** the agreed
-  direction is one centralized Express error-handling middleware instead of each controller calling
-  `BaseController.handleError()` directly, alongside an Express 4→5 upgrade. Until that migration
-  lands, keep using the existing per-controller pattern for any new or edited controller — don't
-  migrate a single controller in isolation and leave the codebase inconsistent about which pattern
-  is current.
+- **Error handling is centralized**, not per-controller: a controller method just does its work and
+  lets an error throw/reject naturally — no try/catch, no `handleError()` call (that method and
+  `BaseController` no longer exist). `api/middlewares/error-handling-middleware/` is the single
+  place every HTTP error response gets shaped, registered as the last `app.use()` in `server.ts`.
+  This relies on Express 5's native forwarding of a rejected async handler's promise to error
+  middleware — don't reintroduce a local try/catch in a controller "just to be safe."

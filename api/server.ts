@@ -9,6 +9,7 @@ import requestIdMiddleware from './middlewares/request-middlewares/request-id-mi
 import requestLoggerMiddleware from './middlewares/request-middlewares/request-logger-middleware.js';
 import responseLoggerMiddleware from './middlewares/request-middlewares/response-logger-middleware.js';
 import AuthorizationMiddleware from './middlewares/authorization-middlewares/authorization-middleware.js';
+import ErrorHandlingMiddleware from './middlewares/error-handling-middleware/error-handling-middleware.js';
 import AuthRoutes from './modules/auth/route.js';
 
 class Server extends BaseClass {
@@ -54,6 +55,12 @@ class Server extends BaseClass {
     this.app.get('/', (req, res) => {
       res.send(`${this.config.app.name} is running in ${this.env} environment`);
     });
+
+    // Must be the last app.use() - Express only routes to an error-handling (4-arg) middleware
+    // once nothing earlier in the chain has already sent a response, and only if something threw
+    // or a returned promise rejected.
+    const errorHandlingMiddleware = new ErrorHandlingMiddleware();
+    this.app.use(errorHandlingMiddleware.handle());
   }
 
   public getApp(): Application {

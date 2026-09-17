@@ -19,7 +19,7 @@ vi.mock('../../service/auth-service', () => ({
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import AuthController from '../../controller.js';
-import { ConflictError, UnauthorizedError } from '../../../../exceptions/exceptions.js';
+import { ConflictError, ForbiddenError, UnauthorizedError } from '../../../../exceptions/exceptions.js';
 import type { StaffUserSchema } from '../../../../models/staff-user-model.js';
 import { getRequestContext, getUserId, requestContextStorage } from '../../../../utils/request-context/request-context.js';
 
@@ -103,17 +103,16 @@ describe('AuthController', () => {
       });
     });
 
-    it('delegates a duplicate-email error to the shared error handler', async () => {
+    it('propagates a duplicate-email error for the centralized error handler to map', async () => {
       const req = createMockRequest({ body: {} });
       const res = createMockResponse();
       mockAuthService.createUser.mockRejectedValueOnce(
         new ConflictError({ message: 'Email is already registered.', code: 'EMAIL_ALREADY_REGISTERED' })
       );
 
-      await controller.signUp(req, res as unknown as Response);
+      await expect(controller.signUp(req, res as unknown as Response)).rejects.toThrow(ConflictError);
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.CONFLICT);
-      expect(res.send).toHaveBeenCalledWith({ message: 'Email is already registered.', code: 'EMAIL_ALREADY_REGISTERED' });
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -169,31 +168,29 @@ describe('AuthController', () => {
       });
     });
 
-    it('delegates authentication errors to the shared error handler', async () => {
+    it('propagates authentication errors for the centralized error handler to map', async () => {
       const req = createMockRequest({ body: { email: 'alice@example.com', password: 'wrong' }, platformType: 'web' });
       const res = createMockResponse();
       mockAuthService.authenticateUser.mockRejectedValueOnce(
         new UnauthorizedError({ message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' })
       );
 
-      await controller.login(req, res as unknown as Response);
+      await expect(controller.login(req, res as unknown as Response)).rejects.toThrow(UnauthorizedError);
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(res.send).toHaveBeenCalledWith({ message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' });
+      expect(res.status).not.toHaveBeenCalled();
       expect(res.cookie).not.toHaveBeenCalled();
     });
   });
 
   describe('refreshToken', () => {
-    it('returns 403 when no refresh token is present', async () => {
+    it('throws ForbiddenError when no refresh token is present', async () => {
       const req = createMockRequest({ platformType: 'web', cookies: {} });
       const res = createMockResponse();
 
-      await controller.refreshToken(req, res as unknown as Response);
+      await expect(controller.refreshToken(req, res as unknown as Response)).rejects.toThrow(ForbiddenError);
 
       expect(mockAuthService.refreshToken).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.FORBIDDEN);
-      expect(res.send).toHaveBeenCalledWith({ message: 'refreshToken not found', code: 'NO_REFRESH_TOKEN' });
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('reads the refresh token from the cookie, sets a new one, and returns only the access token for non-mobile platforms', async () => {
@@ -226,30 +223,28 @@ describe('AuthController', () => {
       expect(res.send).toHaveBeenCalledWith({ accessToken: 'generated-access-token', refreshToken: 'generated-refresh-token' });
     });
 
-    it('delegates rotation errors to the shared error handler', async () => {
+    it('propagates rotation errors for the centralized error handler to map', async () => {
       const req = createMockRequest({ platformType: 'web', cookies: { refreshToken: 'stale-token' } });
       const res = createMockResponse();
       mockAuthService.refreshToken.mockRejectedValueOnce(
         new UnauthorizedError({ message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' })
       );
 
-      await controller.refreshToken(req, res as unknown as Response);
+      await expect(controller.refreshToken(req, res as unknown as Response)).rejects.toThrow(UnauthorizedError);
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(res.send).toHaveBeenCalledWith({ message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' });
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
   describe('logout', () => {
-    it('returns 401 when the request has no authenticated user', async () => {
+    it('throws UnauthorizedError when the request has no authenticated user', async () => {
       const req = createMockRequest({ platformType: 'web' });
       const res = createMockResponse();
 
-      await controller.logout(req, res as unknown as Response);
+      await expect(controller.logout(req, res as unknown as Response)).rejects.toThrow(UnauthorizedError);
 
       expect(mockAuthService.logout).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(res.send).toHaveBeenCalledWith({ message: 'User Id not found', code: 'MISSING_USER_ID' });
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('clears the cookie and returns 204 for non-mobile platforms', async () => {
@@ -285,27 +280,26 @@ describe('AuthController', () => {
       expect(res.sendStatus).toHaveBeenCalledWith(StatusCodes.NO_CONTENT);
     });
 
-    it('delegates service errors to the shared error handler', async () => {
+    it('propagates unexpected service errors for the centralized error handler to map', async () => {
       const req = createMockRequest({ user: 'user-public-id-1', platformType: 'web', cookies: {} });
       const res = createMockResponse();
       mockAuthService.logout.mockRejectedValueOnce(new Error('unexpected'));
 
-      await controller.logout(req, res as unknown as Response);
+      await expect(controller.logout(req, res as unknown as Response)).rejects.toThrow('unexpected');
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
   describe('logoutFromAllDevices', () => {
-    it('returns 401 when the request has no authenticated user', async () => {
+    it('throws UnauthorizedError when the request has no authenticated user', async () => {
       const req = createMockRequest({ platformType: 'web' });
       const res = createMockResponse();
 
-      await controller.logoutFromAllDevices(req, res as unknown as Response);
+      await expect(controller.logoutFromAllDevices(req, res as unknown as Response)).rejects.toThrow(UnauthorizedError);
 
       expect(mockAuthService.logoutFromAllDevices).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(res.send).toHaveBeenCalledWith({ message: 'User Id not found', code: 'MISSING_USER_ID' });
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it('clears the cookie and returns 204 for non-mobile platforms', async () => {
@@ -341,14 +335,14 @@ describe('AuthController', () => {
       expect(res.sendStatus).toHaveBeenCalledWith(StatusCodes.NO_CONTENT);
     });
 
-    it('delegates service errors to the shared error handler', async () => {
+    it('propagates unexpected service errors for the centralized error handler to map', async () => {
       const req = createMockRequest({ user: 'user-public-id-1', platformType: 'web' });
       const res = createMockResponse();
       mockAuthService.logoutFromAllDevices.mockRejectedValueOnce(new Error('unexpected'));
 
-      await controller.logoutFromAllDevices(req, res as unknown as Response);
+      await expect(controller.logoutFromAllDevices(req, res as unknown as Response)).rejects.toThrow('unexpected');
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });

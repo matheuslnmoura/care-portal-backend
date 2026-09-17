@@ -99,7 +99,7 @@ describe('AuthorizationMiddleware', () => {
       });
     });
 
-    it('returns 401 for an expired token', () => {
+    it('throws UnauthorizedError for an expired token, for the centralized error handler to map', () => {
       vi.useFakeTimers();
 
       try {
@@ -110,25 +110,23 @@ describe('AuthorizationMiddleware', () => {
         const req = createMockRequest({ headers: { authorization: `Bearer ${accessToken}` } });
         const res = createMockResponse();
 
-        middleware(req, res as unknown as Response, next as unknown as NextFunction);
+        expect(() => middleware(req, res as unknown as Response, next as unknown as NextFunction)).toThrow(UnauthorizedError);
 
-        expect(res.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-        expect(res.send).toHaveBeenCalledWith({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
+        expect(res.status).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it('returns 500 when the token signature cannot be verified', () => {
+    it('propagates the raw jsonwebtoken error when the token signature cannot be verified', () => {
       const foreignToken = new TokenManager().generateAccessToken({ payload: { userId: 'user-123' } });
       const req = createMockRequest({ headers: { authorization: `Bearer ${foreignToken}garbage` } });
       const res = createMockResponse();
 
-      middleware(req, res as unknown as Response, next as unknown as NextFunction);
+      expect(() => middleware(req, res as unknown as Response, next as unknown as NextFunction)).toThrow();
 
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(res.send).toHaveBeenCalledWith({ message: 'Error verifying accessToken', code: 'INTERNAL_SERVER_ERROR' });
+      expect(res.status).not.toHaveBeenCalled();
       expect(next).not.toHaveBeenCalled();
     });
   });
