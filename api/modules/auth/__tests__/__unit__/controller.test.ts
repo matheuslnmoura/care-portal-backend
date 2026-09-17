@@ -193,6 +193,16 @@ describe('AuthController', () => {
       expect(res.status).not.toHaveBeenCalled();
     });
 
+    it('throws ForbiddenError when the refresh token cookie is an empty string', async () => {
+      const req = createMockRequest({ platformType: 'web', cookies: { refreshToken: '' } });
+      const res = createMockResponse();
+
+      await expect(controller.refreshToken(req, res as unknown as Response)).rejects.toThrow(ForbiddenError);
+
+      expect(mockAuthService.refreshToken).not.toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
     it('reads the refresh token from the cookie, sets a new one, and returns only the access token for non-mobile platforms', async () => {
       const req = createMockRequest({ platformType: 'web', cookies: { refreshToken: 'current-refresh-token' } });
       const res = createMockResponse();

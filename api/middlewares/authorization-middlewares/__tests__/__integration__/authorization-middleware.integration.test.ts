@@ -24,12 +24,12 @@ describe('AuthorizationMiddleware, exercised over real HTTP', () => {
     expect(response.body).toMatchObject({ code: 'INVALID_AUTH_HEADER_TYPE' });
   });
 
-  it('returns 500 for a token with an invalid signature, via the centralized error handler', async () => {
+  it('returns 401 for a token with an invalid signature, via the centralized error handler', async () => {
     const response = await request(app)
       .get('/api/staff-users/user-info')
       .set('Authorization', 'Bearer not-a-real.jwt.token');
 
-    expect(response.status).toBe(500);
-    expect(response.body).toMatchObject({ code: 'INTERNAL_SERVER_ERROR' });
+    expect(response.status).toBe(401);
+    expect(response.body).toMatchObject({ code: 'INVALID_TOKEN' });
   });
 });

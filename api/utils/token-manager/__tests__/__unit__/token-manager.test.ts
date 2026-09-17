@@ -26,10 +26,6 @@ describe('TokenManager', () => {
       }
     });
 
-    // Regression test: payload/iat/exp alone are not enough entropy - two tokens for the same
-    // user issued within the same second (iat has second granularity) used to be byte-identical,
-    // which meant their hashes collided too and a second insert into staff_user_refresh_tokens
-    // hit a real unique-constraint violation (found via integration testing, not a unit test).
     it('generates a different token each call, even for the same payload at the same instant', () => {
       vi.useFakeTimers();
 
@@ -67,8 +63,6 @@ describe('TokenManager', () => {
       }
     });
 
-    // Same regression as generateAccessToken - a byte-identical refresh token means an identical
-    // hash, which is exactly what caused the real unique-constraint violation on rotation.
     it('generates a different token each call, even for the same payload at the same instant', () => {
       vi.useFakeTimers();
 
@@ -189,11 +183,36 @@ describe('TokenManager', () => {
       }
     });
 
-    it('throws when the token was signed with a different secret', () => {
+    it('returns null when the token was signed with a different secret', () => {
       const tokenManager = new TokenManager();
       const foreignToken = jwt.sign({ userId: 'user-123' }, 'some-other-secret', { algorithm: 'HS256' });
 
-      expect(() => tokenManager.verifyAccessToken({ accessToken: foreignToken })).toThrow();
+      expect(tokenManager.verifyAccessToken({ accessToken: foreignToken })).toBeNull();
+    });
+
+    it('returns null for a malformed token instead of throwing', () => {
+      const tokenManager = new TokenManager();
+
+      expect(tokenManager.verifyAccessToken({ accessToken: 'not-a-real-token' })).toBeNull();
+    });
+
+    it('returns null for an empty string instead of throwing', () => {
+      const tokenManager = new TokenManager();
+
+      expect(tokenManager.verifyAccessToken({ accessToken: '' })).toBeNull();
+    });
+
+    it('rethrows a non-jsonwebtoken error unchanged', () => {
+      const tokenManager = new TokenManager();
+      const verifySpy = vi.spyOn(jwt, 'verify').mockImplementation(() => {
+        throw new Error('unexpected failure');
+      });
+
+      try {
+        expect(() => tokenManager.verifyAccessToken({ accessToken: 'irrelevant' })).toThrow('unexpected failure');
+      } finally {
+        verifySpy.mockRestore();
+      }
     });
   });
 
@@ -221,11 +240,36 @@ describe('TokenManager', () => {
       }
     });
 
-    it('throws when the token was signed with a different secret', () => {
+    it('returns null when the token was signed with a different secret', () => {
       const tokenManager = new TokenManager();
       const foreignToken = jwt.sign({ userId: 'user-123' }, 'some-other-secret', { algorithm: 'HS256' });
 
-      expect(() => tokenManager.verifyRefreshToken({ refreshToken: foreignToken })).toThrow();
+      expect(tokenManager.verifyRefreshToken({ refreshToken: foreignToken })).toBeNull();
+    });
+
+    it('returns null for a malformed token instead of throwing', () => {
+      const tokenManager = new TokenManager();
+
+      expect(tokenManager.verifyRefreshToken({ refreshToken: 'not-a-real-token' })).toBeNull();
+    });
+
+    it('returns null for an empty string instead of throwing', () => {
+      const tokenManager = new TokenManager();
+
+      expect(tokenManager.verifyRefreshToken({ refreshToken: '' })).toBeNull();
+    });
+
+    it('rethrows a non-jsonwebtoken error unchanged', () => {
+      const tokenManager = new TokenManager();
+      const verifySpy = vi.spyOn(jwt, 'verify').mockImplementation(() => {
+        throw new Error('unexpected failure');
+      });
+
+      try {
+        expect(() => tokenManager.verifyRefreshToken({ refreshToken: 'irrelevant' })).toThrow('unexpected failure');
+      } finally {
+        verifySpy.mockRestore();
+      }
     });
   });
 

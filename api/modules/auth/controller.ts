@@ -51,7 +51,10 @@ class AuthController extends BaseClass {
 
     const currentRefreshToken = this.authorizationMiddleware.handleGetRefreshToken(req);
 
-    if (currentRefreshToken === undefined) throw new ForbiddenError({ code: 'NO_REFRESH_TOKEN', message: 'refreshToken not found' });
+    // A present-but-empty cookie is still "no token" - undefined alone doesn't cover that.
+    if (currentRefreshToken === undefined || currentRefreshToken === '') {
+      throw new ForbiddenError({ code: 'NO_REFRESH_TOKEN', message: 'refreshToken not found' });
+    }
 
     const { accessToken, refreshToken, userId } = await this.service.refreshToken({ refreshToken: currentRefreshToken, userAgent: req.headers['user-agent'] });
     req.user = userId;

@@ -267,6 +267,14 @@ describe('AuthService', () => {
       expect(getLoggedOutput()).toContain('No refresh token found');
     });
 
+    it('logs and returns early when the refresh token is an empty string', async () => {
+      await authService.logout({ userId: 'user-public-id-1', refreshToken: '' });
+
+      expect(mockStaffUserService.findById).not.toHaveBeenCalled();
+      expect(mockRefreshTokenRepository.deleteByHash).not.toHaveBeenCalled();
+      expect(getLoggedOutput()).toContain('No refresh token found');
+    });
+
     it('logs and returns early when no user matches the userId', async () => {
       mockStaffUserService.findById.mockResolvedValueOnce(null);
 

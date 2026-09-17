@@ -151,7 +151,8 @@ class AuthService extends BaseClass {
   }
 
   async logout({ userId, refreshToken }: LogoutParamsInterface): Promise<void> {
-    if (refreshToken === undefined) {
+    // A present-but-empty refresh token is still "absent" here.
+    if (refreshToken === undefined || refreshToken === '') {
       this.logger.info({
         actor: userId,
         className: 'AuthService',

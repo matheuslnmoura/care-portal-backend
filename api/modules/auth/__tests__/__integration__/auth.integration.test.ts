@@ -131,17 +131,22 @@ describe('auth routes', () => {
       expect(response.body).toMatchObject({ code: 'NO_REFRESH_TOKEN' });
     });
 
-    // TokenManager.verifyRefreshToken only special-cases TokenExpiredError, re-throwing anything
-    // else (e.g. a malformed token's JsonWebTokenError) uncaught - a real gap, consistent with the
-    // same pre-existing limitation in verifyAccessToken. Tracked in .local/technical-debt.md rather
-    // than fixed here; this asserts today's actual behavior, not the eventually-correct one.
-    it('returns 500 for a malformed refresh token (documents a known gap - should be 401)', async () => {
+    it('returns 401 for a malformed refresh token', async () => {
       const response = await request(app)
         .post('/api/auth/refresh')
         .set('Cookie', 'refreshToken=not-a-real-token');
 
-      expect(response.status).toBe(500);
-      expect(response.body).toMatchObject({ code: 'INTERNAL_SERVER_ERROR' });
+      expect(response.status).toBe(401);
+      expect(response.body).toMatchObject({ code: 'INVALID_REFRESH_TOKEN' });
+    });
+
+    it('returns 403 when the refresh token cookie is an empty string', async () => {
+      const response = await request(app)
+        .post('/api/auth/refresh')
+        .set('Cookie', 'refreshToken=');
+
+      expect(response.status).toBe(403);
+      expect(response.body).toMatchObject({ code: 'NO_REFRESH_TOKEN' });
     });
 
     it('rotates the refresh token and returns a new access token on success', async () => {

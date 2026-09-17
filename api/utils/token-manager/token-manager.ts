@@ -47,9 +47,7 @@ export class TokenManager extends BaseClass {
   public generateAccessToken({ payload }: GenerateTokenInterface): Pick<TokensInterface, 'accessToken'>['accessToken'] {
     const sanitizedAccessSecret = this.sanitizeAccessSecret();
     // jwtid gives every token a unique claim independent of iat/exp (second granularity) - without
-    // it, two tokens for the same user issued within the same second are byte-identical, which for
-    // refresh tokens also means identical hashes (a real unique-constraint violation, found via
-    // integration testing).
+    // it, two tokens for the same user issued within the same second would be byte-identical.
     const options: SignOptions = { algorithm: 'HS256', expiresIn: this.accessExpiry as StringValue, jwtid: crypto.randomUUID() };
     return jwt.sign(payload, sanitizedAccessSecret, options);
   }
@@ -80,12 +78,8 @@ export class TokenManager extends BaseClass {
       return jwt.verify(accessToken, sanitizedAccessSecret) as JwtPayload;
 
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'name' in error &&
-        error.name === 'TokenExpiredError'
-      ) {
+      // JsonWebTokenError covers expired, malformed, empty, and tampered/wrong-secret tokens.
+      if (error instanceof jwt.JsonWebTokenError) {
         return null;
       }
       throw error;
@@ -97,12 +91,7 @@ export class TokenManager extends BaseClass {
       const sanitizedRefreshSecret = this.sanitizeRefreshSecret();
       return jwt.verify(refreshToken, sanitizedRefreshSecret) as VerifyTokenResponseInterface;
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'name' in error &&
-        error.name === 'TokenExpiredError'
-      ) {
+      if (error instanceof jwt.JsonWebTokenError) {
         return null;
       }
       throw error;

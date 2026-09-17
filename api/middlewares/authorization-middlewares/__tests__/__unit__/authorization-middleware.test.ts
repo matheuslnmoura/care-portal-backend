@@ -119,12 +119,12 @@ describe('AuthorizationMiddleware', () => {
       }
     });
 
-    it('propagates the raw jsonwebtoken error when the token signature cannot be verified', () => {
+    it('throws UnauthorizedError for a malformed/tampered token, for the centralized error handler to map', () => {
       const foreignToken = new TokenManager().generateAccessToken({ payload: { userId: 'user-123' } });
       const req = createMockRequest({ headers: { authorization: `Bearer ${foreignToken}garbage` } });
       const res = createMockResponse();
 
-      expect(() => middleware(req, res as unknown as Response, next as unknown as NextFunction)).toThrow();
+      expect(() => middleware(req, res as unknown as Response, next as unknown as NextFunction)).toThrow(UnauthorizedError);
 
       expect(res.status).not.toHaveBeenCalled();
       expect(next).not.toHaveBeenCalled();

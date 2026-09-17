@@ -16,8 +16,15 @@ work actually gets done here.
    make its own purpose clear from its name alone.
 4. **Minimize comments.** Code should explain itself through naming and structure. Add a comment
    only when it's strictly necessary — a non-obvious constraint, a workaround, a subtle invariant —
-   and keep it short. Never reference this project's local-only planning docs (`.local/`) from a
-   comment or commit — they won't exist for anyone else who clones the repo.
+   and keep it short. Default to zero comments; a change that "needs" several almost always means
+   the code isn't self-explanatory yet, not that it needs more prose next to it.
+   A comment states the current invariant, not its backstory. Never narrate how a bug was found,
+   call something a "regression test," reference a past bug, PR, ticket, or testing session, or
+   explain what the code used to do — that context belongs in the commit message, not the file, and
+   rots the moment the history stops mattering to a reader. If removing the comment wouldn't leave a
+   future reader confused about *why* the code is the way it is, delete it. Never reference this
+   project's local-only planning docs (`.local/`) from a comment or commit — they won't exist for
+   anyone else who clones the repo.
 5. **Keep functions/methods short** — a soft guideline, not a hard rule. Past ~30-40 lines, consider
    whether splitting it would actually improve readability.
 6. **Watch cognitive complexity.** Deeply nested conditionals, many branches, and compound boolean
