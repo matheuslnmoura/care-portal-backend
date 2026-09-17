@@ -98,6 +98,7 @@ describe('RequestSchemaMiddleware', () => {
 
         expect(res.status).toHaveBeenCalledOnce();
         expect(res.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
+        expect(res.send).toHaveBeenCalledWith({ message: expect.stringContaining('x-api-key') as string, code: 'BAD_REQUEST' });
         expect(next).not.toHaveBeenCalled();
       });
     });

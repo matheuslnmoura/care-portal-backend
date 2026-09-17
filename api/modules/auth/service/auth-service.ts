@@ -3,7 +3,7 @@ import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 import PasswordManager from '../../../utils/password-manager/password-manager.js';
 import StaffUserService from '../../staff-users/service/staff-user-service.js';
 import StaffUserRefreshTokenRepository from '../repository/staff-user-refresh-token-repository.js';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import type { TokensInterface } from '../../../utils/token-manager/token-manager.js';
 import { TokenManager } from '../../../utils/token-manager/token-manager.js';
 import type { AuthCredential, CredentialProvider } from '../credential.js';
@@ -60,7 +60,7 @@ class AuthService extends BaseClass {
 
   async createUser({ name, phone, email, password, birthdate, tenantId }: UserPayload): Promise<StaffUserSchema> {
     const user = {
-      userId: nanoid(),
+      userId: crypto.randomUUID(),
       tenantId,
       name,
       contacts: {

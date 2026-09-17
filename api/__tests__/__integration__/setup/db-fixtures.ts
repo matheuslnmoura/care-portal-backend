@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import { getPostgresPool } from '../../../config/database/postgres-client.js';
 import PasswordManager from '../../../utils/password-manager/password-manager.js';
 
@@ -40,8 +40,8 @@ export interface SeededStaffUser {
 // already-existing staff user without exercising (and being coupled to) the signup flow itself.
 export const seedStaffUser = async (overrides: SeedStaffUserOverrides = {}): Promise<SeededStaffUser> => {
   const tenantId = overrides.tenantId ?? (await seedTenant()).id;
-  const publicId = nanoid();
-  const email = overrides.email ?? `staff-${nanoid(8)}@example.com`;
+  const publicId = crypto.randomUUID();
+  const email = overrides.email ?? `staff-${crypto.randomUUID()}@example.com`;
   const phone = overrides.phone ?? `+1555${String(Math.floor(1000000 + Math.random() * 8999999))}`;
   const password = overrides.password ?? 'super-secret-password';
   const passwordHash = await passwordManager.createPasswordHash({ password });

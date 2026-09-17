@@ -49,8 +49,8 @@ vi.mock('../../../../../utils/token-manager/token-manager', () => ({
   })
 }));
 
-vi.mock('nanoid', () => ({
-  nanoid: vi.fn(() => 'fixed-nanoid')
+vi.mock('crypto', () => ({
+  default: { randomUUID: vi.fn(() => 'fixed-uuid') }
 }));
 
 import AuthService from '../../auth-service.js';
@@ -117,7 +117,7 @@ describe('AuthService', () => {
       expect(mockPasswordManager.createPasswordHash).toHaveBeenCalledWith({ password: 'plain-text-password' });
       expect(mockStaffUserService.createUser).toHaveBeenCalledWith({
         user: {
-          userId: 'fixed-nanoid',
+          userId: 'fixed-uuid',
           tenantId: 'tenant-id-1',
           name: 'Alice',
           contacts: { phone: '+15551234567', email: 'alice@example.com' },

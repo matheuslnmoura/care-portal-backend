@@ -28,7 +28,7 @@ describe('GET /api/staff-users/user-info', () => {
   });
 
   it('returns 404 when the token is validly signed but no matching staff user exists', async () => {
-    const accessToken = tokenManager.generateAccessToken({ payload: { userId: 'no-such-public-id' } });
+    const accessToken = tokenManager.generateAccessToken({ payload: { userId: '00000000-0000-0000-0000-000000000000' } });
 
     const response = await request(app)
       .get('/api/staff-users/user-info')
