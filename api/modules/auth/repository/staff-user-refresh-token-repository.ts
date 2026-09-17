@@ -5,6 +5,7 @@ import { RefreshTokenExpiredError, RefreshTokenNotFoundError, RefreshTokenOwners
 
 export interface CreateRefreshTokenParams {
   userId: string;
+  tenantId: string;
   tokenHash: string;
   expiresAt: Date;
   deviceId: string;
@@ -39,6 +40,7 @@ export interface RotateRefreshTokenParams {
   currentTokenHash: string;
   newTokenHash: string;
   userId: string;
+  tenantId: string;
   expiresAt: Date;
   deviceId: string;
   userAgent: string;
@@ -47,6 +49,7 @@ export interface RotateRefreshTokenParams {
 export interface RefreshTokenSchema {
   id: string;
   user_id: string;
+  tenant_id: string;
   token_hash: string;
   issued_at: Date;
   expires_at: Date;
@@ -58,11 +61,12 @@ export interface RefreshTokenSchema {
   updated_at: Date;
 }
 
-const REFRESH_TOKEN_COLUMNS = 'id, user_id, token_hash, issued_at, expires_at, last_used_at, device_id, user_agent, revoked_at, created_at, updated_at';
+const REFRESH_TOKEN_COLUMNS = 'id, user_id, tenant_id, token_hash, issued_at, expires_at, last_used_at, device_id, user_agent, revoked_at, created_at, updated_at';
 
 class StaffUserRefreshTokenRepository extends BaseClass {
   async create({
     userId,
+    tenantId,
     tokenHash,
     expiresAt,
     deviceId,
@@ -74,14 +78,15 @@ class StaffUserRefreshTokenRepository extends BaseClass {
     const result = await runner.query<RefreshTokenSchema>(
       `INSERT INTO staff_user_refresh_tokens (
         user_id,
+        tenant_id,
         token_hash,
         expires_at,
         device_id,
         user_agent
       )
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING ${REFRESH_TOKEN_COLUMNS}`,
-      [ userId, tokenHash, expiresAt, deviceId, userAgent ]
+      [ userId, tenantId, tokenHash, expiresAt, deviceId, userAgent ]
     );
 
     return result.rows[0];
@@ -148,6 +153,7 @@ class StaffUserRefreshTokenRepository extends BaseClass {
     currentTokenHash,
     newTokenHash,
     userId,
+    tenantId,
     expiresAt,
     deviceId,
     userAgent
@@ -211,6 +217,7 @@ class StaffUserRefreshTokenRepository extends BaseClass {
 
       await this.create({
         userId,
+        tenantId,
         tokenHash: newTokenHash,
         expiresAt,
         deviceId,

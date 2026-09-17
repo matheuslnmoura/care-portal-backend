@@ -1,6 +1,7 @@
 export interface StaffUserDatabaseSchema {
   id: string;
   public_id: string;
+  tenant_id: string;
   name: string;
   email: string;
   phone: string;
@@ -21,6 +22,7 @@ export interface StaffUserContactsInterface {
 export interface StaffUserSchema {
   id: StaffUserDatabaseSchema['id'];
   userId: StaffUserDatabaseSchema['public_id'];
+  tenantId: StaffUserDatabaseSchema['tenant_id'];
   name: StaffUserDatabaseSchema['name'];
   contacts: StaffUserContactsInterface;
   passwordHash: StaffUserDatabaseSchema['password_hash'];

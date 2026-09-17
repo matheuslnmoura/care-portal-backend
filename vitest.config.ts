@@ -3,7 +3,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: [ 'api/**/*.test.ts' ],
+    // Only __unit__ folders - __integration__ tests hit a real Postgres and have their own
+    // config/setup (vitest.integration.config.ts), run only via `pnpm test:integration`.
+    include: [ 'api/**/__unit__/**/*.test.ts' ],
     setupFiles: [ './vitest.setup.ts' ],
     clearMocks: true,
     restoreMocks: true,
@@ -15,7 +17,7 @@ export default defineConfig({
       // api/models/audit-model.ts: excluded because the audit-logging feature it belongs to
       // isn't implemented yet (Logger.writeLog's `if (this.config.log[type].audit)` is a no-op
       // and Mongo is never connected) - remove this line once that feature actually ships.
-      exclude: [ 'api/**/*.test.ts', 'api/server.ts', 'api/types/**', 'api/models/audit-model.ts' ]
+      exclude: [ 'api/**/*.test.ts', 'api/server.ts', 'api/types/**', 'api/models/audit-model.ts', 'api/**/__integration__/**' ]
     }
   }
 });

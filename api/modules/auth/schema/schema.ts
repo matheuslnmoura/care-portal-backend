@@ -7,6 +7,10 @@ export interface SignUpBodyInterface {
   password: string;
   phone: StaffUserSchema['contacts']['phone'];
   birthdate: StaffUserSchema['birthdate'];
+  // The tenant (clinic/hospital) this staff account is being created under - must already exist.
+  // No tenant-selection/onboarding flow exists yet (Phase 1), so the client is assumed to already
+  // know which tenant it's registering for.
+  tenantId: StaffUserSchema['tenantId'];
 }
 
 export const signUpBodySchema: Joi.ObjectSchema<SignUpBodyInterface> = Joi.object<SignUpBodyInterface>({
@@ -14,7 +18,8 @@ export const signUpBodySchema: Joi.ObjectSchema<SignUpBodyInterface> = Joi.objec
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   phone: Joi.string().required(),
-  birthdate: Joi.date().required()
+  birthdate: Joi.date().required(),
+  tenantId: Joi.string().guid().required()
 });
 
 export interface LoginBodyInterface extends Pick<SignUpBodyInterface, 'email'| 'password'> {}

@@ -46,13 +46,17 @@ export class TokenManager extends BaseClass {
 
   public generateAccessToken({ payload }: GenerateTokenInterface): Pick<TokensInterface, 'accessToken'>['accessToken'] {
     const sanitizedAccessSecret = this.sanitizeAccessSecret();
-    const options: SignOptions = { algorithm: 'HS256', expiresIn: this.accessExpiry as StringValue };
+    // jwtid gives every token a unique claim independent of iat/exp (second granularity) - without
+    // it, two tokens for the same user issued within the same second are byte-identical, which for
+    // refresh tokens also means identical hashes (a real unique-constraint violation, found via
+    // integration testing).
+    const options: SignOptions = { algorithm: 'HS256', expiresIn: this.accessExpiry as StringValue, jwtid: crypto.randomUUID() };
     return jwt.sign(payload, sanitizedAccessSecret, options);
   }
 
   public generateRefreshToken({ payload }: GenerateTokenInterface): Pick<TokensInterface, 'refreshToken'>['refreshToken'] {
     const sanitizedRefreshSecret = this.sanitizeRefreshSecret();
-    const options: SignOptions = { algorithm: 'HS256', expiresIn: this.refreshExpiry as StringValue };
+    const options: SignOptions = { algorithm: 'HS256', expiresIn: this.refreshExpiry as StringValue, jwtid: crypto.randomUUID() };
     return jwt.sign(payload, sanitizedRefreshSecret, options);
   }
 

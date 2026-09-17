@@ -101,4 +101,11 @@ class DuplicatePhoneError extends Error {
   }
 }
 
-export { CustomRequestError, BadRequestError, NotFoundError, UnexpectedError, TooManyRequestsError, UnauthorizedError, ForbiddenError, ConflictError, RefreshTokenNotFoundError, RefreshTokenOwnershipError, RefreshTokenRevokedError, RefreshTokenExpiredError, DuplicateEmailError, DuplicatePhoneError };
+class TenantNotFoundError extends Error {
+  constructor(message = 'Tenant not found.') {
+    super(message);
+    this.name = 'TenantNotFoundError';
+  }
+}
+
+export { CustomRequestError, BadRequestError, NotFoundError, UnexpectedError, TooManyRequestsError, UnauthorizedError, ForbiddenError, ConflictError, RefreshTokenNotFoundError, RefreshTokenOwnershipError, RefreshTokenRevokedError, RefreshTokenExpiredError, DuplicateEmailError, DuplicatePhoneError, TenantNotFoundError };

@@ -56,6 +56,10 @@ class Server extends BaseClass {
     });
   }
 
+  public getApp(): Application {
+    return this.app;
+  }
+
   public async start(): Promise<void> {
     try {
       await this.databaseManager.connectAll();
@@ -81,9 +85,17 @@ class Server extends BaseClass {
   }
 }
 
-const server = new Server();
-server.start()
-  .catch(error => {
-    // eslint-disable-next-line no-console
-    console.error('Failed to start server', error);
-  });
+export default Server;
+
+// Only actually boot when this file is the process entrypoint (`tsx api/server.ts` / `node
+// dist/server.js`) - not when a test or other module imports the class, which must be able to
+// construct its own Server instance (after configuring env vars) without triggering a real
+// database connection and a real listening socket as a side effect of the import itself.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const server = new Server();
+  server.start()
+    .catch(error => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to start server', error);
+    });
+}

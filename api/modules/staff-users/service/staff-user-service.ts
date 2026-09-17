@@ -1,4 +1,4 @@
-import { ConflictError, DuplicateEmailError, DuplicatePhoneError, UnexpectedError } from '../../../exceptions/exceptions.js';
+import { ConflictError, DuplicateEmailError, DuplicatePhoneError, NotFoundError, TenantNotFoundError, UnexpectedError } from '../../../exceptions/exceptions.js';
 import BaseClass from '../../../base/base-class/base-class.js';
 import type { StaffUserSchema } from '../../../models/staff-user-model.js';
 import StaffUserRepository from '../repository/staff-user-repository.js';
@@ -28,6 +28,13 @@ class StaffUserService extends BaseClass implements CredentialProvider<StaffUser
         throw new ConflictError({
           message: `Phone number ${user.contacts.phone} is already registered.`,
           code: 'PHONE_ALREADY_REGISTERED'
+        });
+      }
+
+      if (error instanceof TenantNotFoundError) {
+        throw new NotFoundError({
+          message: 'Tenant not found.',
+          code: 'TENANT_NOT_FOUND'
         });
       }
 

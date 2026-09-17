@@ -20,9 +20,9 @@ class AuthController extends BaseController {
   async signUp(req: Request, res: Response): Promise<void> {
     try {
       setRequestContext({ ...this.context, methodName: 'signUp' });
-      const { name, email, password, phone, birthdate } = req.body as SignUpBodyInterface;
+      const { name, email, password, phone, birthdate, tenantId } = req.body as SignUpBodyInterface;
 
-      const user = await this.service.createUser({ name, email, password, phone, birthdate });
+      const user = await this.service.createUser({ name, email, password, phone, birthdate, tenantId });
 
       res.status(StatusCodes.OK).send({ userId: user.userId, name: user.name, email: user.contacts.email, phone: user.contacts.phone });
     } catch (error: unknown) {

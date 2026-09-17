@@ -21,6 +21,7 @@ export interface UserPayload  {
   email: StaffUserSchema['contacts']['email'];
   password: string;
   birthdate: StaffUserSchema['birthdate'];
+  tenantId: StaffUserSchema['tenantId'];
 };
 
 interface AuthenticateUserParamsInterface extends Pick<UserPayload, 'email' | 'password'> {
@@ -57,9 +58,10 @@ class AuthService extends BaseClass {
     this.tokenManager = new TokenManager();
   }
 
-  async createUser({ name, phone, email, password, birthdate }: UserPayload): Promise<StaffUserSchema> {
+  async createUser({ name, phone, email, password, birthdate, tenantId }: UserPayload): Promise<StaffUserSchema> {
     const user = {
       userId: nanoid(),
+      tenantId,
       name,
       contacts: {
         phone,
@@ -85,6 +87,7 @@ class AuthService extends BaseClass {
 
     await this.refreshTokenRepository.create({
       userId: user.id,
+      tenantId: user.tenantId,
       tokenHash: refreshTokenHash,
       expiresAt: this.tokenManager.getRefreshTokenExpiryDate(),
       // No client-side device identifier exists yet (would need a dedicated header/mechanism),
@@ -119,6 +122,7 @@ class AuthService extends BaseClass {
         currentTokenHash: refreshTokenHash,
         newTokenHash: newRefreshTokenHash,
         userId: user.id,
+        tenantId: user.tenantId,
         expiresAt: this.tokenManager.getRefreshTokenExpiryDate(),
         deviceId: 'unknown',
         userAgent: userAgent ?? 'unknown'
