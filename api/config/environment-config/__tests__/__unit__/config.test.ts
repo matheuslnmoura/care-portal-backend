@@ -109,6 +109,35 @@ describe('environment config', () => {
     expect(config.app.port).toBe(8090);
   });
 
+  // dotenv parses `KEY= # comment` (no value before the `#`) as an empty string, not as
+  // "unset" - which is exactly what .env.example's "defaults to X" comment convention produces
+  // if a value is left blank. `??`/`!== undefined` checks don't catch that, since '' is neither
+  // null nor undefined. Regression test for the real bug this caused: BASE_ROUTE resolved to ''
+  // instead of '/api', silently stripping the prefix from every registered route.
+  it('treats an empty string the same as an unset env var', async () => {
+    vi.stubEnv('BASE_ROUTE', '');
+    vi.stubEnv('PASSWORD_SALT_ROUNDS', '');
+    vi.stubEnv('POSTGRES_HOST', '');
+    vi.stubEnv('POSTGRES_DB', '');
+    vi.stubEnv('POSTGRES_POOL_MAX', '');
+    vi.stubEnv('POSTGRES_IDLE_TIMEOUT_MS', '');
+    vi.stubEnv('LOG_AUDIT_ERROR', '');
+    vi.stubEnv('LOG_AUDIT_SUCCESS', '');
+    vi.stubEnv('LOG_AUDIT_FATAL', '');
+
+    const { default: config } = await import('../../config.js') as { default: ConfigType };
+
+    expect(config.app.baseRoute).toBe('/api');
+    expect(config.application.passwordManager.saltRounds).toBe(10);
+    expect(config.db.postgres.host).toBe('localhost');
+    expect(config.db.postgres.database).toBe('care-portal-local');
+    expect(config.db.postgres.max).toBe(10);
+    expect(config.db.postgres.idleTimeoutMillis).toBe(30000);
+    expect(config.log.error.audit).toBe(true);
+    expect(config.log.success.audit).toBe(true);
+    expect(config.log.fatal.audit).toBe(true);
+  });
+
   it('publicRoutes is a fixed list, not env-driven', async () => {
     const { default: config } = await import('../../config.js') as { default: ConfigType };
 

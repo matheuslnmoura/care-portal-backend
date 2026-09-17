@@ -8,7 +8,7 @@
     "clear:dist": "rm -rf dist/*",
     "compile": "npm run clear:dist; tsc -p tsconfig.build.json",
     "start": "clear; npm run compile; node dist/server.js",
-    "dev": "export NODE_ENV=default; clear; nodemon --watch api -e ts --exec \"tsx api/server.ts\"",
+    "dev": "export NODE_ENV=default; clear; nodemon --watch api -e ts --exec \"tsx api/server.ts\" | tee server.log",
     "lint": "clear; ./node_modules/.bin/eslint \"api/**/*.ts\" ",
     "lint:fix": "clear; ./node_modules/.bin/eslint \"api/**/*.ts\" --fix",
     "test": "vitest run",

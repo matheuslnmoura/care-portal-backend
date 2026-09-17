@@ -1,17 +1,31 @@
 import type { ConfigType } from './config.types.js';
 
+// dotenv parses `KEY= # comment` (nothing before the `#`) as an empty string, not as "unset" -
+// which is exactly what .env.example's "defaults to X" comment convention produces if a value is
+// left blank. Treating '' the same as undefined here means that footgun can't silently defeat
+// these fallbacks.
+const readEnv = (value: string | undefined): string | undefined =>
+  value === undefined || value === '' ? undefined : value;
+
+const toStr = (value: string | undefined, fallback: string): string =>
+  readEnv(value) ?? fallback;
+
 const toInt = (value: string | undefined, fallback: number): number => {
-  const parsed = Number(value);
-  return value !== undefined && !Number.isNaN(parsed) ? parsed : fallback;
+  const raw = readEnv(value);
+  if (raw === undefined) return fallback;
+  const parsed = Number(raw);
+  return Number.isNaN(parsed) ? fallback : parsed;
 };
 
-const toBool = (value: string | undefined, fallback: boolean): boolean =>
-  value !== undefined ? value === 'true' : fallback;
+const toBool = (value: string | undefined, fallback: boolean): boolean => {
+  const raw = readEnv(value);
+  return raw === undefined ? fallback : raw === 'true';
+};
 
 const config: ConfigType = {
   app: {
     name: 'care-portal-backend',
-    baseRoute: process.env.BASE_ROUTE ?? '/api',
+    baseRoute: toStr(process.env.BASE_ROUTE, '/api'),
     port: toInt(process.env.PORT, 8090)
   },
   application: {
@@ -26,24 +40,24 @@ const config: ConfigType = {
   },
   db: {
     mongodb: {
-      url: process.env.MONGODB_URL ?? '',
+      url: toStr(process.env.MONGODB_URL, ''),
       options: {
         minPoolSize: toInt(process.env.MONGODB_MIN_POOL_SIZE, 10),
         connectTimeoutMS: toInt(process.env.MONGODB_CONNECT_TIMEOUT_MS, 30000)
       }
     },
     redis: {
-      host: process.env.REDIS_HOST ?? '',
+      host: toStr(process.env.REDIS_HOST, ''),
       port: toInt(process.env.REDIS_PORT, 6379),
       ttl: toInt(process.env.REDIS_TTL, 86400),
       maxRetriesPerRequest: toInt(process.env.REDIS_MAX_RETRIES_PER_REQUEST, 1)
     },
     postgres: {
-      host: process.env.POSTGRES_HOST ?? 'localhost',
+      host: toStr(process.env.POSTGRES_HOST, 'localhost'),
       port: toInt(process.env.POSTGRES_PORT, 5432),
-      database: process.env.POSTGRES_DB ?? 'care-portal-local',
-      user: process.env.POSTGRES_USER ?? '',
-      password: process.env.POSTGRES_PASS ?? '',
+      database: toStr(process.env.POSTGRES_DB, 'care-portal-local'),
+      user: toStr(process.env.POSTGRES_USER, ''),
+      password: toStr(process.env.POSTGRES_PASS, ''),
       max: toInt(process.env.POSTGRES_POOL_MAX, 10),
       idleTimeoutMillis: toInt(process.env.POSTGRES_IDLE_TIMEOUT_MS, 30000)
     }
